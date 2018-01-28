@@ -5,6 +5,8 @@ import (
 	"github.com/viant/assertly"
 	"github.com/viant/toolbox"
 	"testing"
+	"fmt"
+	"os"
 )
 
 type assertUseCase struct {
@@ -175,7 +177,7 @@ func TestAssertMap(t *testing.T) {
 			Description: "expected apply error",
 			Expected: map[string]interface{}{
 				assertly.CastDataTypeDirective + "k2": "abc",
-				"k2": 2.0,
+				"k2":                                  2.0,
 			},
 			Actual:   map[string]interface{}{},
 			HasError: true,
@@ -200,7 +202,7 @@ func TestAssertMap(t *testing.T) {
 			Description: "actual error",
 			Expected: map[string]interface{}{
 				assertly.TimeFormatDirective + "k2": "yyyy-MM-dd",
-				"k2": "2019-01-01",
+				"k2":                                "2019-01-01",
 			},
 			Actual: map[string]interface{}{
 				"k2": "99-99-99",
@@ -330,9 +332,9 @@ func TestAssertSlice(t *testing.T) {
 			Description: "indexed slice test",
 			Expected: []map[string]interface{}{
 				{
-					"key": 1,
-					"x":   100,
-					"y":   200,
+					"key":                                1,
+					"x":                                  100,
+					"y":                                  200,
 					assertly.CastDataTypeDirective + "x": "float",
 				},
 			},
@@ -373,6 +375,37 @@ func TestAssertJSONSlice(t *testing.T) {
 			Actual: `[1,2,3]
 [3,5]`,
 			PassedCount: 0,
+			FailedCount: 1,
+		},
+	}
+	runUseCases(t, useCases)
+
+}
+
+func TestAssertText(t *testing.T) {
+	var useCases = []*assertUseCase{
+		{
+			Description: "text qual test",
+			Expected:    "123",
+			Actual:      "123",
+			PassedCount: 1,
+		},
+		{
+			Description: "text qual test",
+			Expected:    "123",
+			Actual:      "1234",
+			FailedCount: 1,
+		},
+		{
+			Description: "text qual test",
+			Expected:    "!123",
+			Actual:      "1234",
+			PassedCount: 1,
+		},
+		{
+			Description: "text qual test",
+			Expected:    "!123",
+			Actual:      "123",
 			FailedCount: 1,
 		},
 	}
@@ -472,7 +505,7 @@ func TestAssertSwitchCase(t *testing.T) {
 }
 
 func TestAssertWithGlobalDirective(t *testing.T) {
-	context := assertly.NewContext()
+	context := assertly.NewDefaultContext()
 	directivePath := assertly.NewDataPath("")
 
 	{
@@ -494,7 +527,7 @@ func TestAssertWithGlobalDirective(t *testing.T) {
 `, `{
 	"id":213,
 	"isEnabled":"false",
-	"done":true
+	"done":"true1"
 }
 `, testPath.Key("field"), context)
 			assert.Nil(t, err)
@@ -566,6 +599,40 @@ func TestAssertRegExpr(t *testing.T) {
 			Expected:    "~/m???:1/",
 			Actual:      "123",
 			HasError:    true,
+		},
+	}
+	runUseCases(t, useCases)
+
+}
+
+func TestAssertMacro(t *testing.T) {
+
+	var useCases = []*assertUseCase{
+		{
+			Description: "macro-predicate test",
+			Expected:    "<ds:between[1,10]>",
+			Actual:      "3",
+			PassedCount: 1,
+			FailedCount: 0,
+		},
+		{
+			Description: "macro-predicate violation test",
+			Expected:    "<ds:between[1,10]>",
+			Actual:      "13",
+			PassedCount: 0,
+			FailedCount: 1,
+		},
+		{
+			Description: "macro-predicate error test",
+			Expected:    "<ds:between[1,10, 2]>",
+			Actual:      "13",
+			HasError:    true,
+		},
+		{
+			Description: "macro expansion",
+			Expected:    `1<ds:env["USER"]>3`,
+			Actual:      fmt.Sprintf("1%v3", os.Getenv("USER")),
+			PassedCount: 1,
 		},
 	}
 	runUseCases(t, useCases)
@@ -679,4 +746,142 @@ func runUseCases(t *testing.T, useCases []*assertUseCase) {
 		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, useCase.Description)
 		assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, useCase.Description)
 	}
+}
+
+func runUseCasesWithContext(t *testing.T, useCases []*assertUseCase, context *assertly.Context) {
+	for _, useCase := range useCases {
+		path := assertly.NewDataPath("/")
+		validation, err := assertly.AssertWithContext(useCase.Expected, useCase.Actual, path, context)
+		if err != nil {
+			if useCase.HasError {
+				continue
+			}
+			assert.Nil(t, err, useCase.Description)
+			continue
+		} else if useCase.HasError {
+			assert.NotNil(t, err, useCase.Description)
+			continue
+		}
+		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, useCase.Description)
+		assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, useCase.Description)
+		assert.EqualValues(t, useCase.FailedCount > 0, validation.HasFailure(), )
+	}
+}
+
+func TestAssertStructure(t *testing.T) {
+	var useCases = []*assertUseCase{
+
+		{
+			Description: "data structure test",
+			Expected: `{
+  "1": {
+    "id":1,
+    "name":"name 1"
+  },
+  "2": {
+    "id":2,
+    "name":"name 2"
+  }
+}`,
+			Actual: `{
+  "1": {
+    "id":1,
+    "name":"name 1"
+  },
+  "2": {
+    "id":2,
+    "name":"name 22"
+  }
+}`,
+			PassedCount: 3,
+			FailedCount: 1,
+		},
+		{
+			Description: "data structure test",
+			Expected: `{
+  "Meta": "abc",
+  "Table": "abc",
+  "Rows": [
+    {
+      "id": 1,
+      "name": "name 1"
+    },
+    {
+      "id": 2,
+      "name": "name 2",
+      "settings": {
+        "k1": "v2"
+      }
+    },
+    {
+      "id": 2,
+      "name": "name 2"
+    }
+  ]
+}`,
+			Actual: `{
+"Table":"abc",
+"Rows":[
+{
+	"id":1,
+	"name":"name 12"
+},
+{
+	"id":2,
+	"name":"name 2",
+	"settings": {
+		"k1":"v20"
+	}
+},
+{
+	"id":4,
+	"name":"name 2"
+}
+	]
+}`,
+			PassedCount: 5,
+			FailedCount: 4,
+		},
+	}
+	runUseCases(t, useCases)
+
+}
+
+func TestAssertStructureWithIndexDirective(t *testing.T) {
+	var useCases = []*assertUseCase{
+		{
+			Description: "data structure with index directive",
+			Expected: `{
+  "1": {
+    "id":1,
+	"seq":0,
+    "name":"name 1"
+  },
+  "2": {
+    "id":2,
+	"seq":0,
+    "name":"name 2"
+  }
+}`,
+			Actual: `{
+  "1": {
+    "id":1,
+	"seq":0,
+    "name":"name 1"
+  },
+  "2": {
+    "id":2,
+	"seq":0,
+    "name":"name 22"
+  }
+}`,
+			PassedCount: 5,
+			FailedCount: 1,
+		},
+	}
+	defaultDirective := assertly.NewDirective(assertly.NewDataPath(""))
+	defaultDirective.IndexBy = []string{"id", "seq"}
+	context := assertly.NewContext(nil, nil, assertly.NewDirectives(defaultDirective), nil)
+	runUseCasesWithContext(t, useCases, context)
+
 }

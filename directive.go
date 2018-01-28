@@ -31,6 +31,9 @@ func (d *Directive) mergeFrom(source *Directive) {
 	mergeTextMap(source.TimeLayouts, &d.TimeLayouts)
 	mergeBoolMap(source.KeyExists, &d.KeyExists)
 	mergeBoolMap(source.KeyDoesNotExist, &d.KeyDoesNotExist)
+	if d.MatchingPath() == "" && len(d.IndexBy) == 0 {
+		d.IndexBy = source.IndexBy
+	}
 }
 
 func (d *Directive) AddKeyExists(key string) {
@@ -61,7 +64,33 @@ func (d *Directive) AddDataType(key, value string) {
 	d.DataType[key] = value
 }
 
-func (d *Directive) Extract(aMap map[string]interface{}) bool {
+func (d *Directive) ExtractDataTypes(aMap map[string]interface{}) {
+	for k, v := range aMap {
+		if toolbox.IsInt(v) {
+			d.AddDataType(k, "int")
+		} else if toolbox.IsFloat(v) {
+			d.AddDataType(k, "float")
+		} else if toolbox.IsBool(v) {
+			d.AddDataType(k, "bool")
+		} else if toolbox.IsTime(v) {
+			timeValue := toolbox.AsTime(v, toolbox.DefaultDateLayout)
+			var dateFormat = "yyyy-MM-dd"
+			if timeValue.Hour() > 0 {
+				dateFormat += " hh"
+				if timeValue.Minute() > 0 {
+					dateFormat += ":mm"
+					if timeValue.Second() > 0 {
+						dateFormat += ":ss"
+					}
+				}
+			}
+			layout := toolbox.DateFormatToLayout(dateFormat)
+			d.AddTimeLayout(k, layout)
+		}
+	}
+}
+
+func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 	var keyCount = len(aMap)
 	var directiveCount = 0
 	for k, v := range aMap {
@@ -152,6 +181,10 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 		if !ok {
 			continue
 		}
+		if d.IsDirectiveValue(toolbox.AsString(val)) {
+			continue
+		}
+
 		switch dataType {
 		case "float":
 			casted, err = toolbox.ToFloat(val)
@@ -175,6 +208,11 @@ func (d *Directive) IsDirectiveKey(key string) bool {
 		strings.HasPrefix(key, CastDataTypeDirective) ||
 		key == IndexByDirective ||
 		key == SwitchByDirective
+}
+
+func (d *Directive) IsDirectiveValue(value string) bool {
+	return value == KeyExistsDirective ||
+		value == KeyDoesNotExistsDirective
 }
 
 func NewDirective(dataPath DataPath) *Directive {

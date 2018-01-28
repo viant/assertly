@@ -9,34 +9,37 @@ import (
 )
 
 const (
-	MissingEntryViolation         = "had missing entry"
-	IncompatibleDataTypeViolation = "had incompatible data type"
+	MissingEntryViolation         = "entry was missing"
+	IncompatibleDataTypeViolation = "data type was incompatible"
 	KeyExistsViolation            = "key should exist"
 	KeyDoesNotExistViolation      = "key should not exist"
-	EqualViolation                = "should be equal"
+	EqualViolation                = "value should be equal"
+	NotEqualViolation                = "value should not be equal"
 	LengthViolation               = "should have the same length"
-	MissingCaseViolation          = "should switch/case value"
+	MissingCaseViolation          = "missing switch/case value"
 	RegExprMatchesViolation       = "should match regrexp"
 	RegExprDoesNotMatchViolation  = "should mot match regrexp"
 	RangeViolation                = "should be in range"
 	RangeNotViolation             = "should not be in range"
 	ContainsViolation             = "should contain fragment"
 	DoesNotContainViolation       = "should not contain fragment"
-	PredicateViolation            = "should "
+	PredicateViolation            = "should pass predicate"
 )
 
+//Assert validates expected against actual data structure for supplied path
 func Assert(expected, actual interface{}, path DataPath) (*Validation, error) {
-	context := NewContext()
+	context := NewDefaultContext()
 	return AssertWithContext(expected, actual, path, context)
 }
 
+//AssertWithContext validates expected against actual data structure for supplied path and context
 func AssertWithContext(expected, actual interface{}, path DataPath, context *Context) (*Validation, error) {
 	validation := NewValidation()
 	err := assertValue(expected, actual, path, context, validation)
 	return validation, err
 }
 
-func adPredicate(input interface{}) toolbox.Predicate {
+func getPredicate(input interface{}) toolbox.Predicate {
 	predicate, ok := input.(toolbox.Predicate)
 	if !ok {
 		if predicatePointer, ok := input.(*toolbox.Predicate); ok {
@@ -46,23 +49,39 @@ func adPredicate(input interface{}) toolbox.Predicate {
 	return predicate
 }
 
-func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) error {
-	if text, ok := expected.(string); ok {
-		if toolbox.IsCompleteJSON(text) {
-			expected = asDataStructure(text)
+func expandExpectedText(text string, path DataPath, context *Context) (interface{}, error) {
+	if context.Evaluator.HasMacro(text) {
+		evaluated, err := context.Evaluator.Expand(context.Context, text)
+		if err != nil {
+			return nil, fmt.Errorf("failed to expand macro %v, path:%v, %v", text, path.Path(), err)
 		}
-	} else {
-		predicate := adPredicate(expected)
-		if predicate != nil {
-			if !predicate.Apply(actual) {
+		if ! toolbox.IsString(evaluated) {
+			return evaluated, nil
+		}
+		text = toolbox.AsString(evaluated)
+	}
+	if toolbox.IsCompleteJSON(text) {
+		datastructure := asDataStructure(text)
+		return context.State.Expand(datastructure), nil
+	}
+	return context.State.Expand(text), nil
+}
 
-			} else {
-
-			}
-			return nil
+func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
+	if text, ok := expected.(string); ok {
+		if expected, err = expandExpectedText(text, path, context); err != nil {
+			return err
 		}
 	}
-
+	predicate := getPredicate(expected)
+	if predicate != nil {
+		if !predicate.Apply(actual) {
+			validation.AddFailure(NewFailure(path.Path(), PredicateViolation, predicate, actual))
+		} else {
+			validation.PassedCount++
+		}
+		return nil
+	}
 	if text, ok := actual.(string); ok {
 		if toolbox.IsCompleteJSON(text) {
 			actual = asDataStructure(text)
@@ -112,7 +131,7 @@ func isNegated(candidate string) (string, bool) {
 }
 
 func assertRegExpr(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) error {
-	expected = string(expected[2 : len(expected)-1])
+	expected = string(expected[2: len(expected)-1])
 	useMultiLine := strings.Count(actual, "\n") > 0
 	pattern := ""
 	if useMultiLine {
@@ -139,7 +158,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 		return fmt.Errorf("invalid range format, expected /[min..max]/ or /[val1,val2,valN]/, but had:%v, path: %v", expected, path.Path())
 	}
 	actual = strings.TrimSpace(actual)
-	expected = string(expected[2 : len(expected)-2])
+	expected = string(expected[2: len(expected)-2])
 	var rangeValues = strings.Split(expected, "..")
 	var withinRange bool
 	if len(rangeValues) > 1 {
@@ -167,7 +186,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 }
 
 func assertContains(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) {
-	expected = string(expected[1 : len(expected)-1])
+	expected = string(expected[1: len(expected)-1])
 	contains := strings.Contains(actual, expected)
 	if !contains && !isNegated {
 		validation.AddFailure(NewFailure(path.Path(), ContainsViolation, expected, actual))
@@ -195,10 +214,16 @@ func assertText(expected, actual string, path DataPath, context *Context, valida
 			assertContains(isNegated, expected, actual, path, context, validation)
 			return nil
 		}
-
 	}
-
-	validation.AddFailure(NewFailure(path.Path(), EqualViolation, expected, actual))
+	expected, isNegated := isNegated(expected)
+	isEqual := expected == actual
+	if !isEqual && !isNegated {
+		validation.AddFailure(NewFailure(path.Path(), EqualViolation, expected, actual))
+	} else if isEqual && isNegated {
+		validation.AddFailure(NewFailure(path.Path(), NotEqualViolation, expected, actual))
+	} else {
+		validation.PassedCount++
+	}
 	return nil
 }
 
@@ -221,23 +246,26 @@ func actualMap(expected, actualValue interface{}, path DataPath, directive *Dire
 }
 
 func assertMap(expected map[string]interface{}, actualValue interface{}, path DataPath, context *Context, validation *Validation) error {
+
 	directive := NewDirective(path)
 	directive.mergeFrom(path.Directive(context))
-	directive.Extract(expected)
+	directive.ExtractDirectives(expected)
+
+
 
 	var actual = actualMap(expected, actualValue, path, directive, validation)
 	if actual == nil {
 		return nil
 	}
+	directive.ExtractDataTypes(actual)
 	if err := directive.Apply(actual); err != nil {
 		return fmt.Errorf("failed to apply directive to actual, path:%v, %v", path.Path(), err)
 	}
-
 	if len(directive.SwitchBy) > 0 {
 		switchValue := keysValue(actual, directive.SwitchBy...)
 		caseValue, ok := expected[switchValue]
 		if !ok {
-			validation.AddFailure(NewFailure(path.Path(), MissingCaseViolation, expected, actual))
+			validation.AddFailure(NewFailure(path.Path(), MissingCaseViolation, expected, actual, directive.SwitchBy, switchValue))
 			return nil
 		}
 		if !toolbox.IsMap(caseValue) {
@@ -250,11 +278,21 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		return fmt.Errorf("failed to apply directive to expected, path:%v %v", path.Path(), err)
 	}
 
+	indexable := isIndexable(expected)
+	if len(directive.IndexBy) == 0 {
+		indexable = false
+	}
+
 	for expectedKey, expectedValue := range expected {
 		if directive.IsDirectiveKey(expectedKey) {
 			continue
 		}
-		keyPath := path.Key(expectedKey)
+		var keyPath DataPath
+		if indexable {
+			keyPath = path.Key(keysPairValue(toolbox.AsMap(expectedValue), directive.IndexBy...))
+		}  else {
+			keyPath = path.Key(expectedKey)
+		}
 		actualValue, ok := actual[expectedKey]
 		if directive.KeyDoesNotExist[expectedKey] {
 			if ok {
@@ -276,7 +314,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		}
 
 		if !ok {
-			validation.AddFailure(NewFailure(keyPath.Path(), MissingEntryViolation, expectedValue, actualValue))
+			validation.AddFailure(NewFailure(keyPath.Path(), MissingEntryViolation, expectedValue, actualValue, expectedKey))
 			continue
 		}
 		if err := assertValue(expectedValue, actualValue, keyPath, context, validation); err != nil {
@@ -304,7 +342,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 
 	if toolbox.IsMap(expected[0]) {
 		first := toolbox.AsMap(expected[0])
-		if directive.Extract(first) {
+		if directive.ExtractDirectives(first) {
 			expected = expected[1:]
 		}
 		shouldIndex := len(directive.IndexBy) > 0

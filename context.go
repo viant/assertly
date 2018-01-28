@@ -8,14 +8,37 @@ import (
 //Context represent validation context
 type Context struct {
 	toolbox.Context
-	state      data.Map
+	State      data.Map
 	Directives *Directives
+	Evaluator  *toolbox.MacroEvaluator
 }
 
-func NewContext() *Context {
-	return &Context{
-		Context:    toolbox.NewContext(),
-		state:      data.NewMap(),
-		Directives: NewDirectives(),
+
+
+//NewContext returns a context
+func NewContext(state data.Map, ctx toolbox.Context, directives *Directives, evaluator *toolbox.MacroEvaluator) *Context {
+	if state == nil {
+		state = data.NewMap()
 	}
+	if ctx == nil {
+		ctx  = toolbox.NewContext()
+	}
+	if directives == nil {
+		directives = NewDirectives()
+	}
+	if evaluator == nil {
+		evaluator = toolbox.NewMacroEvaluator( "<ds:", ">", ValueProviderRegistry)
+	}
+	return &Context{
+		Context:    ctx,
+		State:      state,
+		Directives: directives,
+		Evaluator:  evaluator,
+	}
+}
+
+
+//NewDefaultContext returns default context
+func NewDefaultContext() *Context {
+	return NewContext(nil, nil,  nil, nil)
 }

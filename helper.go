@@ -80,6 +80,18 @@ func keysValue(aMap map[string]interface{}, keys ...string) string {
 	return result
 }
 
+func keysPairValue(aMap map[string]interface{}, keys ...string) string {
+	var result = ""
+	for _, key := range keys {
+		value := aMap[key]
+		if len(result) > 0 {
+			result += ""
+		}
+		result += key + "(" + toolbox.AsString(value) +")"
+	}
+	return result
+}
+
 func indexSliceBy(aSlice []interface{}, indexFields ...string) map[string]interface{} {
 	var result = make(map[string]interface{})
 	for _, item := range aSlice {
@@ -98,4 +110,14 @@ func toStringSlice(source interface{}) []string {
 		result = append(result, toolbox.AsString(item))
 	}
 	return result
+}
+
+
+func isIndexable(source map[string]interface{}) bool {
+	for _, v := range source {
+		if toolbox.IsMap(v) {
+			return true
+		}
+	}
+	return false
 }

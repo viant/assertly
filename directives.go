@@ -1,5 +1,7 @@
 package assertly
 
+
+//Directives represent a directive
 type Directives struct {
 	*Directive
 	PathDirectives map[string]*Directive
@@ -15,6 +17,7 @@ func (d *Directives) Match(path DataPath) *Directive {
 	return result
 }
 
+//NewDirectives returns new directives
 func NewDirectives(directives ...*Directive) *Directives {
 	var result = &Directives{
 		Directive:      NewDirective(NewDataPath("")),
@@ -27,6 +30,5 @@ func NewDirectives(directives ...*Directive) *Directives {
 		}
 		result.PathDirectives[directive.MatchingPath()] = directives[i]
 	}
-
 	return result
 }
