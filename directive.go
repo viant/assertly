@@ -90,6 +90,30 @@ func (d *Directive) ExtractDataTypes(aMap map[string]interface{}) {
 	}
 }
 
+
+func (d *Directive) Add(target map[string]interface{}) {
+	if len(d.SwitchBy) > 0 {
+		target[SwitchByDirective] = d.SwitchBy
+	}
+	if len(d.IndexBy) > 0 {
+		target[IndexByDirective] = d.IndexBy
+	}
+
+	if len(d.DataType) > 0 {
+		for k, v := range d.DataType {
+			target[CastDataTypeDirective+k] = v
+		}
+	}
+	if len(d.TimeLayouts) > 0 {
+		for k, v := range d.TimeLayouts {
+			target[TimeFormatDirective+k] = v
+		}
+	}
+	if d.TimeLayout != "" {
+		target[TimeFormatDirective] = d.TimeLayout
+	}
+}
+
 func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 	var keyCount = len(aMap)
 	var directiveCount = 0

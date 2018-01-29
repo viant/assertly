@@ -66,7 +66,7 @@ func TestDirective_ExtractExpected(t *testing.T) {
 	{ //test key time format
 		var source = map[string]interface{}{
 			CastDataTypeDirective + "k2": "float",
-			"k2": "3.7",
+			"k2":                         "3.7",
 		}
 		directive.ExtractDirectives(source)
 		assert.EqualValues(t, "float", directive.DataType["k2"])
@@ -110,5 +110,26 @@ func TestDirective_ExtractDataTypes(t *testing.T) {
 		assert.EqualValues(t, "2006-01-02 03:04:05", directive.TimeLayouts["d4"])
 
 	}
+
+}
+
+func TestDirective_Add(t *testing.T) {
+
+	directive := NewDirective(NewDataPath("/"))
+	directive.DataType = map[string]string{"f1": "float"}
+	directive.IndexBy = []string{"id"}
+	directive.SwitchBy = []string{"case"}
+	directive.DataType = map[string]string{"f1": "float"}
+	directive.TimeLayouts = map[string]string{"t1": "2016-01"}
+	directive.TimeLayout = "2016-01-02"
+
+	var target = make(map[string]interface{})
+	directive.Add(target)
+
+	assert.EqualValues(t, "float", target[CastDataTypeDirective+"f1"])
+	assert.EqualValues(t, "2016-01-02", target[TimeFormatDirective])
+	assert.EqualValues(t, "2016-01", target[TimeFormatDirective+"t1"])
+	assert.EqualValues(t, []string{"id"}, target[IndexByDirective])
+	assert.EqualValues(t, []string{"case"}, target[SwitchByDirective])
 
 }

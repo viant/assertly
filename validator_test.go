@@ -222,6 +222,12 @@ func TestAssertSlice(t *testing.T) {
 			PassedCount: 3,
 		},
 		{
+			Description: "slice nil",
+			Expected:    []int{1, 2, 3},
+			Actual:      nil,
+			FailedCount:1,
+		},
+		{
 			Description: "slice not equal test",
 			Expected:    []int{1, 2, 3},
 			Actual:      []int{1, 2, 4},
@@ -242,6 +248,7 @@ func TestAssertSlice(t *testing.T) {
 			PassedCount: 2,
 			FailedCount: 0,
 		},
+
 		{
 			Description: "indexed slice test",
 			Expected: []map[string]interface{}{
@@ -329,7 +336,7 @@ func TestAssertSlice(t *testing.T) {
 		},
 
 		{
-			Description: "indexed slice test",
+			Description: "indexed slice cast test",
 			Expected: []map[string]interface{}{
 				{
 					"key": 1,

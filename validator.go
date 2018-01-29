@@ -260,6 +260,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	if err := directive.Apply(actual); err != nil {
 		return fmt.Errorf("failed to apply directive to actual, path:%v, %v", path.Path(), err)
 	}
+
 	if len(directive.SwitchBy) > 0 {
 		switchValue := keysValue(actual, directive.SwitchBy...)
 		caseValue, ok := expected[switchValue]
@@ -345,15 +346,23 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 
 	if toolbox.IsMap(expected[0]) {
 		first := toolbox.AsMap(expected[0])
+
 		if directive.ExtractDirectives(first) {
 			expected = expected[1:]
 		}
+		//add directive to expected
+		for i := 0; i < len(expected); i++ {
+			var expectedMap  = toolbox.AsMap(expected[i])
+			directive.Add(expectedMap)
+		}
+
 		shouldIndex := len(directive.IndexBy) > 0
 		if shouldIndex {
 			expectedMap := indexSliceBy(expected, directive.IndexBy...)
 			actualMap := indexSliceBy(actual, directive.IndexBy...)
 			return assertMap(expectedMap, actualMap, path, context, validation)
 		}
+
 	}
 	for i := 0; i < len(expected); i++ {
 		if i >= len(actual) {
