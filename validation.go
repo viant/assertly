@@ -93,7 +93,7 @@ func FormatMessage(failure *Failure) string {
 	case RangeNotViolation:
 		return fmt.Sprintf("actual '%v' should not be in: '%v'", failure.Actual, failure.Expected)
 	case ContainsViolation:
-		return fmt.Sprintf("actual '%v' does not contain: '%v'", failure.Actual, failure.Expected)
+			return fmt.Sprintf("actual '%v' does not contain: '%v'", failure.Actual, failure.Expected)
 	case DoesNotContainViolation:
 		return fmt.Sprintf("actual '%v' should not not contain: '%v'", failure.Actual, failure.Expected)
 	case PredicateViolation:

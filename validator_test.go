@@ -881,7 +881,7 @@ func TestAssertStructureWithIndexDirective(t *testing.T) {
 	}
 	defaultDirective := assertly.NewDirective(assertly.NewDataPath(""))
 	defaultDirective.IndexBy = []string{"id", "seq"}
-	context := assertly.NewContext(nil, nil, assertly.NewDirectives(defaultDirective), nil)
+	context := assertly.NewContext(nil,  assertly.NewDirectives(defaultDirective), nil)
 	runUseCasesWithContext(t, useCases, context)
 
 }

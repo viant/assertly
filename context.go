@@ -2,13 +2,11 @@ package assertly
 
 import (
 	"github.com/viant/toolbox"
-	"github.com/viant/toolbox/data"
 )
 
 //Context represent validation context
 type Context struct {
 	toolbox.Context
-	State      data.Map
 	Directives *Directives
 	Evaluator  *toolbox.MacroEvaluator
 }
@@ -16,10 +14,7 @@ type Context struct {
 
 
 //NewContext returns a context
-func NewContext(state data.Map, ctx toolbox.Context, directives *Directives, evaluator *toolbox.MacroEvaluator) *Context {
-	if state == nil {
-		state = data.NewMap()
-	}
+func NewContext(ctx toolbox.Context, directives *Directives, evaluator *toolbox.MacroEvaluator) *Context {
 	if ctx == nil {
 		ctx  = toolbox.NewContext()
 	}
@@ -31,7 +26,6 @@ func NewContext(state data.Map, ctx toolbox.Context, directives *Directives, eva
 	}
 	return &Context{
 		Context:    ctx,
-		State:      state,
 		Directives: directives,
 		Evaluator:  evaluator,
 	}
@@ -40,5 +34,5 @@ func NewContext(state data.Map, ctx toolbox.Context, directives *Directives, eva
 
 //NewDefaultContext returns default context
 func NewDefaultContext() *Context {
-	return NewContext(nil, nil,  nil, nil)
+	return NewContext( nil,  nil, nil)
 }

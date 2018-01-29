@@ -61,10 +61,9 @@ func expandExpectedText(text string, path DataPath, context *Context) (interface
 		text = toolbox.AsString(evaluated)
 	}
 	if toolbox.IsCompleteJSON(text) {
-		datastructure := asDataStructure(text)
-		return context.State.Expand(datastructure), nil
+		return asDataStructure(text), nil
 	}
-	return context.State.Expand(text), nil
+	return text, nil
 }
 
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
@@ -139,6 +138,7 @@ func assertRegExpr(isNegated bool, expected, actual string, path DataPath, conte
 	}
 	pattern += expected
 	compiled, err := regexp.Compile(pattern)
+
 	if err != nil {
 		return fmt.Errorf("failed to compile %v, path: %v, %v", expected, path, err)
 	}
@@ -188,6 +188,8 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 func assertContains(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) {
 	expected = string(expected[1: len(expected)-1])
 	contains := strings.Contains(actual, expected)
+
+
 	if !contains && !isNegated {
 		validation.AddFailure(NewFailure(path.Path(), ContainsViolation, expected, actual))
 	} else if contains && isNegated {
@@ -205,7 +207,7 @@ func assertText(expected, actual string, path DataPath, context *Context, valida
 		if isRegExpr {
 			return assertRegExpr(isNegated, expected, actual, path, context, validation)
 		}
-		isRangeExpr := (strings.HasPrefix(expected, "/[") || strings.HasPrefix(expected, "/![")) && strings.HasSuffix(expected, "]/")
+		isRangeExpr := (strings.HasPrefix(expected, "/[") || strings.HasPrefix(expected, "!/[")) && strings.HasSuffix(expected, "]/")
 		if isRangeExpr {
 			return assertRange(isNegated, expected, actual, path, context, validation)
 		}
@@ -325,6 +327,10 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 }
 
 func assertSlice(expected []interface{}, actualValue interface{}, path DataPath, context *Context, validation *Validation) error {
+	if actualValue == nil {
+		validation.AddFailure(NewFailure(path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
+		return nil
+	}
 	if !toolbox.IsSlice(actualValue) {
 		validation.AddFailure(NewFailure(path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
 		return nil
