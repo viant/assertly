@@ -1,12 +1,12 @@
 package assertly_test
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/viant/assertly"
 	"github.com/viant/toolbox"
-	"testing"
-	"fmt"
 	"os"
+	"testing"
 )
 
 type assertUseCase struct {
@@ -177,7 +177,7 @@ func TestAssertMap(t *testing.T) {
 			Description: "expected apply error",
 			Expected: map[string]interface{}{
 				assertly.CastDataTypeDirective + "k2": "abc",
-				"k2":                                  2.0,
+				"k2": 2.0,
 			},
 			Actual:   map[string]interface{}{},
 			HasError: true,
@@ -202,7 +202,7 @@ func TestAssertMap(t *testing.T) {
 			Description: "actual error",
 			Expected: map[string]interface{}{
 				assertly.TimeFormatDirective + "k2": "yyyy-MM-dd",
-				"k2":                                "2019-01-01",
+				"k2": "2019-01-01",
 			},
 			Actual: map[string]interface{}{
 				"k2": "99-99-99",
@@ -332,9 +332,9 @@ func TestAssertSlice(t *testing.T) {
 			Description: "indexed slice test",
 			Expected: []map[string]interface{}{
 				{
-					"key":                                1,
-					"x":                                  100,
-					"y":                                  200,
+					"key": 1,
+					"x":   100,
+					"y":   200,
 					assertly.CastDataTypeDirective + "x": "float",
 				},
 			},
@@ -764,7 +764,7 @@ func runUseCasesWithContext(t *testing.T, useCases []*assertUseCase, context *as
 		}
 		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, useCase.Description)
 		assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, useCase.Description)
-		assert.EqualValues(t, useCase.FailedCount > 0, validation.HasFailure(), )
+		assert.EqualValues(t, useCase.FailedCount > 0, validation.HasFailure())
 	}
 }
 
@@ -881,7 +881,7 @@ func TestAssertStructureWithIndexDirective(t *testing.T) {
 	}
 	defaultDirective := assertly.NewDirective(assertly.NewDataPath(""))
 	defaultDirective.IndexBy = []string{"id", "seq"}
-	context := assertly.NewContext(nil,  assertly.NewDirectives(defaultDirective), nil)
+	context := assertly.NewContext(nil, assertly.NewDirectives(defaultDirective), nil)
 	runUseCasesWithContext(t, useCases, context)
 
 }

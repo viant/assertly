@@ -7,7 +7,6 @@ import (
 //ValueProviderRegistry represents value provider ValueProviderRegistry
 var ValueProviderRegistry = toolbox.NewValueProviderRegistry()
 
-
 func init() {
 	ValueProviderRegistry.Register("nil", toolbox.NewNilValueProvider())
 	ValueProviderRegistry.Register("env", toolbox.NewEnvValueProvider())
@@ -19,5 +18,3 @@ func init() {
 	ValueProviderRegistry.Register("within_sec", toolbox.NewWithinSecPredicateValueProvider())
 	ValueProviderRegistry.Register("weekday", toolbox.NewWeekdayProvider())
 }
-
-

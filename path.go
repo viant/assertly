@@ -69,7 +69,7 @@ func (p *dataPath) Path() string {
 	var result = make([]string, 0)
 	p.each(func(node *dataPath) bool {
 		if node.root != "" {
-			result = append(result, "[" +node.root+"]:")
+			result = append(result, "["+node.root+"]:")
 		} else if node.key != "" {
 			var dot = "."
 			if node.parent != nil && node.parent.root != "" {

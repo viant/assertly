@@ -87,7 +87,7 @@ func keysPairValue(aMap map[string]interface{}, keys ...string) string {
 		if len(result) > 0 {
 			result += ""
 		}
-		result += key + "(" + toolbox.AsString(value) +")"
+		result += key + "(" + toolbox.AsString(value) + ")"
 	}
 	return result
 }
@@ -111,7 +111,6 @@ func toStringSlice(source interface{}) []string {
 	}
 	return result
 }
-
 
 func isIndexable(source map[string]interface{}) bool {
 	for _, v := range source {

@@ -2,9 +2,9 @@ package assertly
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/viant/toolbox"
 	"testing"
 	"time"
-	"github.com/viant/toolbox"
 )
 
 func TestDirective_ExtractExpected(t *testing.T) {
@@ -66,7 +66,7 @@ func TestDirective_ExtractExpected(t *testing.T) {
 	{ //test key time format
 		var source = map[string]interface{}{
 			CastDataTypeDirective + "k2": "float",
-			"k2":                         "3.7",
+			"k2": "3.7",
 		}
 		directive.ExtractDirectives(source)
 		assert.EqualValues(t, "float", directive.DataType["k2"])
@@ -89,13 +89,13 @@ func TestDirective_ExtractDataTypes(t *testing.T) {
 
 	{ //test index by directive
 		var source = map[string]interface{}{
-			"d1":             date,
-			"d2":             dateHour,
-			"d3":             dateHourMiniute,
-			"d4":             dateHourMiniuteSec,
-			"f":              3.2,
-			"i":              213,
-			"b":              true,
+			"d1": date,
+			"d2": dateHour,
+			"d3": dateHourMiniute,
+			"d4": dateHourMiniuteSec,
+			"f":  3.2,
+			"i":  213,
+			"b":  true,
 		}
 
 		directive := NewDirectives()

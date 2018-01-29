@@ -11,18 +11,16 @@ type Context struct {
 	Evaluator  *toolbox.MacroEvaluator
 }
 
-
-
 //NewContext returns a context
 func NewContext(ctx toolbox.Context, directives *Directives, evaluator *toolbox.MacroEvaluator) *Context {
 	if ctx == nil {
-		ctx  = toolbox.NewContext()
+		ctx = toolbox.NewContext()
 	}
 	if directives == nil {
 		directives = NewDirectives()
 	}
 	if evaluator == nil {
-		evaluator = toolbox.NewMacroEvaluator( "<ds:", ">", ValueProviderRegistry)
+		evaluator = toolbox.NewMacroEvaluator("<ds:", ">", ValueProviderRegistry)
 	}
 	return &Context{
 		Context:    ctx,
@@ -31,8 +29,7 @@ func NewContext(ctx toolbox.Context, directives *Directives, evaluator *toolbox.
 	}
 }
 
-
 //NewDefaultContext returns default context
 func NewDefaultContext() *Context {
-	return NewContext( nil,  nil, nil)
+	return NewContext(nil, nil, nil)
 }

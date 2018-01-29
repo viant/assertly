@@ -1,6 +1,5 @@
 package assertly
 
-
 //Directives represent a directive
 type Directives struct {
 	*Directive

@@ -47,10 +47,8 @@ outer:
 	return toolbox.AsInt(index)
 }
 
-
-
 //NewFailure creates a new failure
-func NewFailure(path string, reason string, expected, actual interface{}, args ... interface{}) *Failure {
+func NewFailure(path string, reason string, expected, actual interface{}, args ...interface{}) *Failure {
 	var result = &Failure{
 		Path:     path,
 		Reason:   reason,
@@ -93,7 +91,7 @@ func FormatMessage(failure *Failure) string {
 	case RangeNotViolation:
 		return fmt.Sprintf("actual '%v' should not be in: '%v'", failure.Actual, failure.Expected)
 	case ContainsViolation:
-			return fmt.Sprintf("actual '%v' does not contain: '%v'", failure.Actual, failure.Expected)
+		return fmt.Sprintf("actual '%v' does not contain: '%v'", failure.Actual, failure.Expected)
 	case DoesNotContainViolation:
 		return fmt.Sprintf("actual '%v' should not not contain: '%v'", failure.Actual, failure.Expected)
 	case PredicateViolation:
@@ -128,7 +126,7 @@ func (v *Validation) HasFailure() bool {
 //MergeFrom merges failures and passes from source
 func (v *Validation) MergeFrom(source *Validation) {
 	v.PassedCount += source.PassedCount
-	for _,  failure:= range source.Failures {
+	for _, failure := range source.Failures {
 		v.AddFailure(failure)
 	}
 }

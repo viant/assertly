@@ -14,7 +14,7 @@ const (
 	KeyExistsViolation            = "key should exist"
 	KeyDoesNotExistViolation      = "key should not exist"
 	EqualViolation                = "value should be equal"
-	NotEqualViolation                = "value should not be equal"
+	NotEqualViolation             = "value should not be equal"
 	LengthViolation               = "should have the same length"
 	MissingCaseViolation          = "missing switch/case value"
 	RegExprMatchesViolation       = "should match regrexp"
@@ -55,7 +55,7 @@ func expandExpectedText(text string, path DataPath, context *Context) (interface
 		if err != nil {
 			return nil, fmt.Errorf("failed to expand macro %v, path:%v, %v", text, path.Path(), err)
 		}
-		if ! toolbox.IsString(evaluated) {
+		if !toolbox.IsString(evaluated) {
 			return evaluated, nil
 		}
 		text = toolbox.AsString(evaluated)
@@ -130,7 +130,7 @@ func isNegated(candidate string) (string, bool) {
 }
 
 func assertRegExpr(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) error {
-	expected = string(expected[2: len(expected)-1])
+	expected = string(expected[2 : len(expected)-1])
 	useMultiLine := strings.Count(actual, "\n") > 0
 	pattern := ""
 	if useMultiLine {
@@ -158,7 +158,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 		return fmt.Errorf("invalid range format, expected /[min..max]/ or /[val1,val2,valN]/, but had:%v, path: %v", expected, path.Path())
 	}
 	actual = strings.TrimSpace(actual)
-	expected = string(expected[2: len(expected)-2])
+	expected = string(expected[2 : len(expected)-2])
 	var rangeValues = strings.Split(expected, "..")
 	var withinRange bool
 	if len(rangeValues) > 1 {
@@ -186,9 +186,8 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 }
 
 func assertContains(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) {
-	expected = string(expected[1: len(expected)-1])
+	expected = string(expected[1 : len(expected)-1])
 	contains := strings.Contains(actual, expected)
-
 
 	if !contains && !isNegated {
 		validation.AddFailure(NewFailure(path.Path(), ContainsViolation, expected, actual))
@@ -253,8 +252,6 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	directive.mergeFrom(path.Directive(context))
 	directive.ExtractDirectives(expected)
 
-
-
 	var actual = actualMap(expected, actualValue, path, directive, validation)
 	if actual == nil {
 		return nil
@@ -292,7 +289,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		var keyPath DataPath
 		if indexable {
 			keyPath = path.Key(keysPairValue(toolbox.AsMap(expectedValue), directive.IndexBy...))
-		}  else {
+		} else {
 			keyPath = path.Key(expectedKey)
 		}
 		actualValue, ok := actual[expectedKey]
