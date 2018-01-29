@@ -131,6 +131,17 @@ func (v *Validation) MergeFrom(source *Validation) {
 	}
 }
 
+//Report returns validation report
+func (v *Validation) Report() string {
+	var result = make([]string, 0)
+	for _, failure := range v.Failures {
+		result = append(result, failure.Message)
+	}
+	result = append(result, fmt.Sprintf("Passed: %v", v.PassedCount))
+	result = append(result, fmt.Sprintf("Failed: %v", v.FailedCount))
+	return strings.Join(result, "\n")
+}
+
 //NewValidation returns new validation
 func NewValidation() *Validation {
 	return &Validation{

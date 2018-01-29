@@ -15,6 +15,7 @@ const (
 	IndexByDirective          = "@indexBy@"
 )
 
+//Directive represents a validation directive
 type Directive struct {
 	DataPath
 	KeyExists       map[string]bool
@@ -36,6 +37,7 @@ func (d *Directive) mergeFrom(source *Directive) {
 	}
 }
 
+//AddKeyExists adds key exists directive
 func (d *Directive) AddKeyExists(key string) {
 	if len(d.KeyExists) == 0 {
 		d.KeyExists = make(map[string]bool)
@@ -43,6 +45,7 @@ func (d *Directive) AddKeyExists(key string) {
 	d.KeyExists[key] = true
 }
 
+//AddKeyDoesNotExist adds key does exist directive
 func (d *Directive) AddKeyDoesNotExist(key string) {
 	if len(d.KeyDoesNotExist) == 0 {
 		d.KeyDoesNotExist = make(map[string]bool)
@@ -50,6 +53,7 @@ func (d *Directive) AddKeyDoesNotExist(key string) {
 	d.KeyDoesNotExist[key] = true
 }
 
+//AddTimeLayout adds time layout directive
 func (d *Directive) AddTimeLayout(key, value string) {
 	if len(d.TimeLayouts) == 0 {
 		d.TimeLayouts = make(map[string]string)
@@ -57,6 +61,7 @@ func (d *Directive) AddTimeLayout(key, value string) {
 	d.TimeLayouts[key] = value
 }
 
+//AddDataType adds data type directive
 func (d *Directive) AddDataType(key, value string) {
 	if len(d.DataType) == 0 {
 		d.DataType = make(map[string]string)
@@ -64,6 +69,7 @@ func (d *Directive) AddDataType(key, value string) {
 	d.DataType[key] = value
 }
 
+//ExtractDataTypes extracts data from from supplied map
 func (d *Directive) ExtractDataTypes(aMap map[string]interface{}) {
 	for k, v := range aMap {
 		if toolbox.IsInt(v) {
@@ -90,7 +96,7 @@ func (d *Directive) ExtractDataTypes(aMap map[string]interface{}) {
 	}
 }
 
-
+//Add adds by to supplied target
 func (d *Directive) Add(target map[string]interface{}) {
 	if len(d.SwitchBy) > 0 {
 		target[SwitchByDirective] = d.SwitchBy
@@ -114,6 +120,7 @@ func (d *Directive) Add(target map[string]interface{}) {
 	}
 }
 
+//ExtractDirective extract directive from supplied map
 func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 	var keyCount = len(aMap)
 	var directiveCount = 0
@@ -158,6 +165,7 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 	return keyCount > 0 && keyCount == directiveCount
 }
 
+//Apply applies directive to supplied map
 func (d *Directive) Apply(aMap map[string]interface{}) error {
 	if err := d.applyTimeFormat(aMap); err != nil {
 		return err
@@ -168,6 +176,7 @@ func (d *Directive) Apply(aMap map[string]interface{}) error {
 	return nil
 }
 
+//DefaultTimeLayout returns default time layout
 func (d *Directive) DefaultTimeLayout() string {
 	if d.TimeLayout == "" {
 		d.TimeLayout = toolbox.DefaultDateLayout
@@ -227,6 +236,7 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 	return nil
 }
 
+//IsDirectiveKey returns true if key is directive
 func (d *Directive) IsDirectiveKey(key string) bool {
 	return strings.HasPrefix(key, TimeFormatDirective) ||
 		strings.HasPrefix(key, CastDataTypeDirective) ||
@@ -234,11 +244,13 @@ func (d *Directive) IsDirectiveKey(key string) bool {
 		key == SwitchByDirective
 }
 
+//IsDirectiveKey returns true if value is directive
 func (d *Directive) IsDirectiveValue(value string) bool {
 	return value == KeyExistsDirective ||
 		value == KeyDoesNotExistsDirective
 }
 
+//NewDirective creates a new directive for supplied path
 func NewDirective(dataPath DataPath) *Directive {
 	var result = &Directive{
 		DataPath: dataPath,

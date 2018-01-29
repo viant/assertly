@@ -352,7 +352,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 		}
 		//add directive to expected
 		for i := 0; i < len(expected); i++ {
-			var expectedMap  = toolbox.AsMap(expected[i])
+			var expectedMap = toolbox.AsMap(expected[i])
 			directive.Add(expectedMap)
 		}
 

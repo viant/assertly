@@ -38,3 +38,12 @@ func TestFailure_MergeFrom(t *testing.T) {
 	assert.EqualValues(t, 2, target.FailedCount)
 	assert.EqualValues(t, 2, len(target.Failures))
 }
+
+func TestValidation_Report(t *testing.T) {
+
+	source := NewValidation()
+	source.AddFailure(NewFailure(":ad[].we", "test", nil, nil))
+	source.PassedCount++
+	assert.EqualValues(t, "test\nPassed: 1\nFailed: 1", source.Report())
+
+}

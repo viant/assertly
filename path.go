@@ -5,15 +5,22 @@ import (
 	"strings"
 )
 
+//DataPath represents a dat path
 type DataPath interface {
+
+	//MatchingPath returns matching path
 	MatchingPath() string
 
+	//Path data path
 	Path() string
 
+	//Index creates subpath for supplied index
 	Index(index int) DataPath
 
+	//Index creates subpath for supplied key
 	Key(key string) DataPath
 
+	//Directive returns a directive for this path
 	Directive(context *Context) *Directive
 }
 
@@ -95,6 +102,7 @@ func (p *dataPath) MatchingPath() string {
 	return strings.Join(result, "/")
 }
 
+//NewDataPath returns a new data path.
 func NewDataPath(root string) DataPath {
 	if root == "" {
 		root = " "

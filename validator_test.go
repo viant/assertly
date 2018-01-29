@@ -225,7 +225,7 @@ func TestAssertSlice(t *testing.T) {
 			Description: "slice nil",
 			Expected:    []int{1, 2, 3},
 			Actual:      nil,
-			FailedCount:1,
+			FailedCount: 1,
 		},
 		{
 			Description: "slice not equal test",

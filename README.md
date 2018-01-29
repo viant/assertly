@@ -10,6 +10,9 @@ Please refer to [`CHANGELOG.md`](CHANGELOG.md) if you encounter breaking changes
 - [Introduction](#Introduction)
 - [Motivation](#Motivation)
 - [Usage](#Usage)
+- [Validation](#Validation)
+- [Directive](#Directive)
+- [Macros](#Macros)
 - [License](#License)
 - [Credits and Acknowledgements](#Credits-and-Acknowledgements)
 
@@ -33,8 +36,319 @@ This library enables complex data structure testing, specifically:
 This library has been created as a way to unify original testing approaches introduced 
 to [dsunit](https://github.com/viant/dsunit) and [endly](https://github.com/viant/endly)
 
+
+
+
+
 <a name="Usage"></a>
 ## Usage
+
+
+```go
+
+import(
+	"github.com/stretchr/testify/assert"
+	"github.com/viant/assertly"
+)
+
+
+func Test_XX(t *testing.T) {
+    
+    validation, err := assertly.Assert(expected, actual, assertly.NewDataPath("/"))
+   	assert.EqualValues(t, 0, validation.FailedCount, validation.Report())
+}
+
+
+```
+
+
+
+<a name="Validation"></a>
+## Validation
+
+
+Validation rules:
+1) JSON textual data is converted into data structure
+2) New Line Delimited JSON is converted into data structure collection.
+3) Object/Struct is converted into data structure
+4) Only existing keys/fields in expected data structure are validated  
+5) Only existing items in the array/slice are validated
+6) Directive and macros/predicate provide validation extension
+7) The following expression can be used on any data structure level:
+
+| Validation Type |  input | expected expression |
+| --- | --- | --- |
+| Equal |  actual | expected |
+| Not Equal |  actual | !expected |
+| Contains | actual | /expected/|
+| Not Contains | actual | !/expected/|
+| RegExpr | actual | ~/expected/ |
+| Not RegExpr | actual | !~/expected/ |
+| Between | actual | /[minExpected..maxExpected]/ |
+| exists | n/a | { "key": "@exists@" }
+| not exists | n/a | { "key": "@!exists@" }
+
+
+**example**:
+
+```go
+
+func Test_XX(t *testing.T) {
+    
+var expected = `
+{
+  "Meta": "abc",
+  "Table": "/table_/",
+  "Rows": [
+    {
+      "id": 1,
+      "name": "~/name (\\d+)/",
+      "@exists@":"dob"
+    },
+    {
+      "id": 2,
+      "name": "name 2",
+      "settings": {
+        "k1": "v2"
+      }
+    },
+    {
+      "id": 2,
+      "name": "name 2"
+    }
+  ]
+}`,
+var actual = `
+{
+  "Table": "table_xx",
+  "Rows": [
+    {
+      "id": 1,
+      "name": "name 12",
+      "dob":"2018-01-01"
+    },
+    {
+      "id": 2,
+      "name": "name 2",
+      "settings": {
+        "k1": "v20"
+      }
+    },
+    {
+      "id": 4,
+      "name": "name 2"
+    }
+  ]
+}`,
+	
+    validation, err := assertly.Assert(expected, actual, assertly.NewDataPath("/"))
+   	assert.EqualValues(t, 0, validation.FailedCount, validation.Report())
+}
+
+
+```
+
+
+<a name="Directive"></a>
+## Directive
+
+	KeyExistsDirective        = "@exists@"
+	KeyDoesNotExistsDirective = "@!exists@"
+	TimeFormatDirective       = "@timeFormat@"
+	SwitchByDirective         = "@switchCaseBy@"
+	CastDataTypeDirective     = "@cast@"
+	IndexByDirective          = "@indexBy@"
+
+
+### Index by
+
+**@indexBy@** - index by directive can be use to assert:
+
+1) Two unordered array/slice/collection that can be index by a unique fieelds 
+2) A map with a actual array/slice/collection that can be ordered by unique fields
+
+
+**Example 1**
+
+
+\#expected
+```json
+{
+"@indexBy@":"id",
+"1" :{"id":1, "name":"name1"},
+"2" :{"id":2, "name":"name2"}
+}
+
+```
+	
+\#actual
+```json
+[
+{"id":1, "name":"name1"},
+{"id":2, "name":"name2"}
+]
+
+```
+
+**Example 2**
+
+\#expected
+```json
+{"@indexBy@":"id"}
+{"id":1, "name":"name1"}
+{"id":2, "name":"name2"}
+```
+	
+\#actual
+```json
+{"id":1, "name":"name1"}
+{"id":2, "name":"name2"}
+```
+
+
+## Switch/case 
+
+**@switchCaseBy@** - enables validation on specific expected data set that matches actual data.
+For non deterministic system there could be various alternative output that still can validated.
+
+**Example**
+
+\#expected 
+ ```json
+ [
+   {
+     "@switchCaseBy@":["experimentID"]
+   },
+   {
+     "1":{"experimentID":1, "seq":1, "outcome":[1.53,7.42,6.34]},
+     "2":{"experimentID":2, "seq":1, "outcome":[3.53,6.32,3.34]}
+   },
+   {
+     "1":{"experimentID":1, "seq":2, "outcome":[5.63,4.3]},
+     "2":{"experimentID":1, "seq":2, "outcome":[3.65,3.2]}
+   }
+ ]
+```
+
+\#actual
+```json
+{"experimentID":1, "seq":1, "outcome":[1.53,7.42,6.34]}
+{"experimentID":1, "seq":2, "outcome":[5.63,4.3]}
+```
+
+
+## Time format
+
+@timeFormat@ - enables data to be converted into time with specified time format  before actual validation takes place.
+
+Time format is expressed in java style date format.
+
+
+
+
+**Example**
+
+\#expected 
+
+```go
+expected := map[string]interface{}{
+    "@timeFormat@date": "yyyy-MM-dd",
+    "@timeFormat@ts": "yyyy-MM-dd hh:mm:ss"
+    "@timeFormat@" "yyyy-MM-dd hh:mm:ss" //default time format       
+    "id":123,
+    "date": "2019-01-01",
+    "ts": "2019-01-01 12:00:01",
+}
+```
+
+\#actual 
+
+```go
+expected := map[string]interface{}{
+	"id":123,
+    "date": "2019-01-01 12:00:01",,
+    "ts": "2019-01-01 12:00:01",
+}
+```
+
+
+## Cast data type
+
+@cast@ - enables data to be converted to specified data type before actual validation takes place.
+
+Supported data type casting:
+* int
+* float
+* boolean
+
+**Example**
+
+
+\#expected 
+ ```json
+ [
+   {
+     "@case@field1":"float","@case@field2":"int"
+   },
+   {
+        "field1":2.3,
+        "field2":123
+   },
+   {
+      "field1":6.3,
+      "field2":551
+   }
+ ]
+```
+
+\#actual
+```json
+{"field1":"2.3","field2":"123"}
+{"field1":"6.3","field2":"551"}
+```
+
+
+<a name="Macro"></a>
+## Macro and predicates
+
+
+The macro is an expression with parameters that expands original text value. 
+The general format of macro: &lt;ds:MACRO_NAME [json formated array of parameters]>
+
+The following macro are build-in:
+
+
+| Name | Parameters | Description | Example | 
+| --- | --- | --- | --- |
+| env | name env variable| Returns value env variable| &lt;ds:env["user"]> |
+| nil |n/a| Returns nil value| &lt;ds:nil> |
+| cast | type name| Returns value env variable| &lt;ds:cast["int", "123"]> |
+| current_timestamp | n/a | Returns time.Now() | &lt;ds:current_timestamp> |
+
+
+## Predicates
+
+Predicate allows expected value to be evaluated with actual dataset value using custom predicate logic.
+
+
+| Name | Parameters | Description | Example | 
+| --- | --- | --- | --- |
+| between | from, to values | Evaluate actual value with between predicate | &lt;ds:between[1.888889, 1.88889]> |
+| within_sec | base time, delta, optional date format | Evaluate if actual time is within delta of the base time | &lt;ds:within_sec["now", 6, "yyyyMMdd HH:mm:ss"]> |
+
+
+**Example**
+
+```go
+    expected := `<ds:between[1,10]>`
+    actual := 3
+```
+
+```go
+    expected := `1<ds:env["USER"]>3`,
+    actual := fmt.Sprintf("1%v3", os.Getenv("USER"))
+```
+
 
 
 
