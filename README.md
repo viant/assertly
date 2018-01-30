@@ -324,8 +324,7 @@ The following macro are build-in:
 | nil |n/a| Returns nil value| &lt;ds:nil> |
 | cast | type name| Returns value env variable| &lt;ds:cast["int", "123"]> |
 | current_timestamp | n/a | Returns time.Now() | &lt;ds:current_timestamp> |
-
-
+| dob | user age, month, day, format(yyyy-MM-dd as default)  | Returns Date Of Birth| &lt;ds:dob> |
 ## Predicates
 
 Predicate allows expected value to be evaluated with actual dataset value using custom predicate logic.
@@ -349,6 +348,31 @@ Predicate allows expected value to be evaluated with actual dataset value using 
     actual := fmt.Sprintf("1%v3", os.Getenv("USER"))
 ```
 
+```go
+    expected := `<ds:dob[3, 6, 3>`
+    actual := 2015-06-03
+```
+
+```go
+    expected := `<ds:dob[3, 6, 3,"yyyy-MM-dd"]>`
+    actual := 2015-06-03
+```
+
+
+```go
+    expected := `<ds:dob[3, 6, 3,"yyyy"]>`
+    actual := 2015
+```
+
+```go
+    expected := `<ds:dob[3, 9, 2,"yyyy-MM"]>`
+    actual := 2015-09
+```
+
+```go
+    expected := `<ds:dob[5, 12, 25,"-MM-dd"]>`
+    actual := 12-25
+```
 
 
 

@@ -17,4 +17,6 @@ func init() {
 	ValueProviderRegistry.Register("between", toolbox.NewBetweenPredicateValueProvider())
 	ValueProviderRegistry.Register("within_sec", toolbox.NewWithinSecPredicateValueProvider())
 	ValueProviderRegistry.Register("weekday", toolbox.NewWeekdayProvider())
+	ValueProviderRegistry.Register("dob", toolbox.NewDateOfBirthrovider())
+
 }
