@@ -151,6 +151,7 @@ var actual = `
 
 <a name="Directive"></a>
 ## Directive
+Directive is an instruction provide validator with transformation or validation rules.
 
 	KeyExistsDirective        = "@exists@"
 	KeyDoesNotExistsDirective = "@!exists@"
@@ -162,9 +163,9 @@ var actual = `
 
 ### Index by
 
-**@indexBy@** - index by directive can be use to assert:
+**@indexBy@** - index by directive indexes a slice for validation process, specifically.
 
-1) Two unordered array/slice/collection that can be index by a unique fieelds 
+1) Two unordered array/slice/collection that can be index by a unique fields 
 2) A map with a actual array/slice/collection that can be ordered by unique fields
 
 
@@ -208,8 +209,9 @@ var actual = `
 
 ## Switch/case 
 
-**@switchCaseBy@** - enables validation on specific expected data set that matches actual data.
-For non deterministic system there could be various alternative output that still can validated.
+**@switchCaseBy@** - switch directive instructs a validator to select matching expected subset based on some actual value.
+.
+For non deterministic system there could be various alternative output for the same input.
 
 **Example**
 
@@ -239,7 +241,7 @@ For non deterministic system there could be various alternative output that stil
 
 ## Time format
 
-@timeFormat@ - enables data to be converted into time with specified time format  before actual validation takes place.
+@timeFormat@ - time format directive instructs a validator to convert data into time with specified time format  before actual validation takes place.
 
 Time format is expressed in java style date format.
 
@@ -274,7 +276,7 @@ expected := map[string]interface{}{
 
 ## Cast data type
 
-@cast@ - enables data to be converted to specified data type before actual validation takes place.
+@cast@ - instruct a validator to convert data to the specified data type before actual validation takes place.
 
 Supported data type casting:
 * int
