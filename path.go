@@ -50,7 +50,16 @@ func (p *dataPath) Directive(context *Context) *Directive {
 	if p.directive != nil {
 		return p.directive
 	}
+
 	directive := context.Directives.Match(p)
+	p.each(func(node *dataPath) bool {
+		if node.directive != nil {
+			directive.mergeFrom(node.directive)
+			return false
+		}
+		return true
+	})
+
 	p.directive = directive
 	return directive
 }

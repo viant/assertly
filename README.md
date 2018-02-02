@@ -327,6 +327,7 @@ The following macro are build-in:
 | cast | type name| Returns value env variable| &lt;ds:cast["int", "123"]> |
 | current_timestamp | n/a | Returns time.Now() | &lt;ds:current_timestamp> |
 | dob | user age, month, day, format(yyyy-MM-dd as default)  | Returns Date Of Birth| &lt;ds:dob> |
+
 ## Predicates
 
 Predicate allows expected value to be evaluated with actual dataset value using custom predicate logic.

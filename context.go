@@ -9,6 +9,7 @@ type Context struct {
 	toolbox.Context
 	Directives *Directives
 	Evaluator  *toolbox.MacroEvaluator
+	StrictDatTypeCheck bool
 }
 
 //NewContext returns a context

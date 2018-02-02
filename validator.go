@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const (
@@ -66,6 +67,20 @@ func expandExpectedText(text string, path DataPath, context *Context) (interface
 	return text, nil
 }
 
+func assertTime(expected *time.Time, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
+	dateLayout := path.Directive(context).DefaultTimeLayout()
+	expectedTime, _ := toolbox.ToTime(expected, dateLayout)
+	if actualTime, err := toolbox.ToTime(actual, dateLayout); err == nil {
+		actual = actualTime;
+		if expectedTime.Equal(*actualTime) {
+			validation.PassedCount++
+			return nil
+		}
+	}
+	validation.AddFailure(NewFailure(path.Path(), NotEqualViolation, expected, actual))
+	return nil
+}
+
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
 	if text, ok := expected.(string); ok {
 		if expected, err = expandExpectedText(text, path, context); err != nil {
@@ -90,12 +105,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	dateLayout := path.Directive(context).DefaultTimeLayout()
 	if toolbox.IsTime(expected) {
 		expectedTime, _ := toolbox.ToTime(expected, dateLayout)
-		if actualTime, err := toolbox.ToTime(actual, dateLayout); err == nil {
-			if expectedTime.Equal(*actualTime) {
-				validation.PassedCount++
-				return nil
-			}
-		}
+		return assertTime(expectedTime, actual, path, context, validation)
 	} else if toolbox.IsStruct(expected) {
 		var converter = toolbox.NewColumnConverter(dateLayout)
 		var expectedMap = make(map[string]interface{})
@@ -117,8 +127,15 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		return nil
 	}
 
-	return assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
+	directive := NewDirective(path)
+	expectedText := toolbox.AsString(expected)
 
+	if ! context.StrictDatTypeCheck {
+		if expectedTime, err := toolbox.ToTime(expectedText, directive.DefaultTimeLayout()); err == nil && expectedTime != nil {
+			return assertTime(expectedTime, actual, path, context, validation)
+		}
+	}
+	return assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
 }
 
 func isNegated(candidate string) (string, bool) {

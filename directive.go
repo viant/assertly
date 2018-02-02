@@ -35,6 +35,9 @@ func (d *Directive) mergeFrom(source *Directive) {
 	if d.MatchingPath() == "" && len(d.IndexBy) == 0 {
 		d.IndexBy = source.IndexBy
 	}
+	if d.TimeLayout == "" {
+		d.TimeLayout = source.TimeLayout
+	}
 }
 
 //AddKeyExists adds key exists directive
