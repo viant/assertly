@@ -13,6 +13,7 @@ const (
 	SwitchByDirective         = "@switchCaseBy@"
 	CastDataTypeDirective     = "@cast@"
 	IndexByDirective          = "@indexBy@"
+	SourceDirective           = "@source@"
 )
 
 //Directive represents a validation directive
@@ -244,7 +245,8 @@ func (d *Directive) IsDirectiveKey(key string) bool {
 	return strings.HasPrefix(key, TimeFormatDirective) ||
 		strings.HasPrefix(key, CastDataTypeDirective) ||
 		key == IndexByDirective ||
-		key == SwitchByDirective
+		key == SwitchByDirective ||
+		key == SourceDirective
 }
 
 //IsDirectiveKey returns true if value is directive

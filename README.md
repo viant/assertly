@@ -159,6 +159,7 @@ Directive is an instruction provide validator with transformation or validation 
 	SwitchByDirective         = "@switchCaseBy@"
 	CastDataTypeDirective     = "@cast@"
 	IndexByDirective          = "@indexBy@"
+	SourceDirective           = "@source@"
 
 
 ### Index by
@@ -310,6 +311,11 @@ Supported data type casting:
 ```
 
 
+
+## Source directive
+
+Source directive is helper directive providing additional information about data point source, i.e. file.json#L113
+
 <a name="Macro"></a>
 ## Macro and predicates
 
@@ -398,5 +404,3 @@ all compatible with Apache License, Version 2. Please see individual files for d
 ##  Credits and Acknowledgements
 
 **Library Author:** Adrian Witas
-
-**Contributors:** Sudhakaran Dharmaraj

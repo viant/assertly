@@ -12,6 +12,8 @@ type Context struct {
 	StrictDatTypeCheck bool
 }
 
+
+
 //NewContext returns a context
 func NewContext(ctx toolbox.Context, directives *Directives, evaluator *toolbox.MacroEvaluator) *Context {
 	if ctx == nil {
@@ -21,7 +23,7 @@ func NewContext(ctx toolbox.Context, directives *Directives, evaluator *toolbox.
 		directives = NewDirectives()
 	}
 	if evaluator == nil {
-		evaluator = toolbox.NewMacroEvaluator("<ds:", ">", ValueProviderRegistry)
+		evaluator = NewDefaultMacroEvaluator()
 	}
 	return &Context{
 		Context:    ctx,
@@ -33,4 +35,9 @@ func NewContext(ctx toolbox.Context, directives *Directives, evaluator *toolbox.
 //NewDefaultContext returns default context
 func NewDefaultContext() *Context {
 	return NewContext(nil, nil, nil)
+}
+
+
+func NewDefaultMacroEvaluator() *toolbox.MacroEvaluator {
+	return toolbox.NewMacroEvaluator("<ds:", ">", ValueProviderRegistry)
 }

@@ -18,5 +18,7 @@ func init() {
 	ValueProviderRegistry.Register("within_sec", toolbox.NewWithinSecPredicateValueProvider())
 	ValueProviderRegistry.Register("weekday", toolbox.NewWeekdayProvider())
 	ValueProviderRegistry.Register("dob", toolbox.NewDateOfBirthrovider())
+	ValueProviderRegistry.Register("cat", toolbox.NewFileValueProvider(true))
+
 
 }
