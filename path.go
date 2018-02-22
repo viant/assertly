@@ -7,7 +7,6 @@ import (
 
 //DataPath represents a dat path
 type DataPath interface {
-
 	//MatchingPath returns matching path
 	MatchingPath() string
 
@@ -20,12 +19,19 @@ type DataPath interface {
 	//Index creates subpath for supplied key
 	Key(key string) DataPath
 
+	//Set source for this path, source may represent detail location of data point
+	SetSource(string)
+
+	//Get source from this path
+	Source() string
+
 	//Directive returns a directive for this path
 	Directive(context *Context) *Directive
 }
 
 type dataPath struct {
 	root      string
+	source    string
 	index     int
 	key       string
 	parent    *dataPath
@@ -44,6 +50,27 @@ func (p *dataPath) Key(field string) DataPath {
 		key:    field,
 		parent: p,
 	}
+}
+
+
+func (p *dataPath) SetSource(source string)  {
+	p.source = source;
+}
+
+
+func (p *dataPath) Source() string {
+	if p.source != "" {
+		return p.source
+	}
+	var result = ""
+	p.each(func(node *dataPath) bool {
+		if node.source != "" {
+			result = node.source
+			return false
+		}
+		return true
+	})
+	return result
 }
 
 func (p *dataPath) Directive(context *Context) *Directive {

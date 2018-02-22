@@ -26,6 +26,7 @@ type Directive struct {
 	DataType        map[string]string
 	SwitchBy        []string
 	IndexBy         []string
+	Source          string
 }
 
 func (d *Directive) mergeFrom(source *Directive) {
@@ -141,7 +142,10 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 			d.IndexBy = toStringSlice(v)
 			continue
 		}
-
+		if k == SourceDirective {
+			d.Source = toolbox.AsString(v)
+			continue
+		}
 		if text, ok := v.(string); ok {
 			if text == KeyExistsDirective {
 				d.AddKeyExists(k)
@@ -218,6 +222,7 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 		if !ok {
 			continue
 		}
+
 		if d.IsDirectiveValue(toolbox.AsString(val)) {
 			continue
 		}
@@ -254,6 +259,7 @@ func (d *Directive) IsDirectiveValue(value string) bool {
 	return value == KeyExistsDirective ||
 		value == KeyDoesNotExistsDirective
 }
+
 
 //NewDirective creates a new directive for supplied path
 func NewDirective(dataPath DataPath) *Directive {

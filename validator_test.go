@@ -177,7 +177,7 @@ func TestAssertMap(t *testing.T) {
 			Description: "expected apply error",
 			Expected: map[string]interface{}{
 				assertly.CastDataTypeDirective + "k2": "abc",
-				"k2": 2.0,
+				"k2":                                  2.0,
 			},
 			Actual:   map[string]interface{}{},
 			HasError: true,
@@ -202,7 +202,7 @@ func TestAssertMap(t *testing.T) {
 			Description: "actual error",
 			Expected: map[string]interface{}{
 				assertly.TimeFormatDirective + "k2": "yyyy-MM-dd",
-				"k2": "2019-01-01",
+				"k2":                                "2019-01-01",
 			},
 			Actual: map[string]interface{}{
 				"k2": "99-99-99",
@@ -339,9 +339,9 @@ func TestAssertSlice(t *testing.T) {
 			Description: "indexed slice cast test",
 			Expected: []map[string]interface{}{
 				{
-					"key": 1,
-					"x":   100,
-					"y":   200,
+					"key":                                1,
+					"x":                                  100,
+					"y":                                  200,
 					assertly.CastDataTypeDirective + "x": "float",
 				},
 			},
@@ -755,7 +755,7 @@ func runUseCases(t *testing.T, useCases []*assertUseCase) {
 	}
 }
 
-func runUseCasesWithContext(t *testing.T, useCases []*assertUseCase, context *assertly.Context) {
+func runUseCasesWithContext(t *testing.T, useCases []*assertUseCase, context *assertly.Context){
 	for _, useCase := range useCases {
 		path := assertly.NewDataPath("/")
 		validation, err := assertly.AssertWithContext(useCase.Expected, useCase.Actual, path, context)
@@ -865,6 +865,47 @@ func TestAssertStructureWithIndexDirective(t *testing.T) {
     "name":"name 1"
   },
   "2": {
+    "id":2,
+	"seq":0,
+    "name":"name 2"
+  }
+}`,
+			Actual: `{
+  "1": {
+    "id":1,
+	"seq":0,
+    "name":"name 1"
+  },
+  "2": {
+    "id":2,
+	"seq":0,
+    "name":"name 22"
+  }
+}`,
+			PassedCount: 5,
+			FailedCount: 1,
+		},
+	}
+	defaultDirective := assertly.NewDirective(assertly.NewDataPath(""))
+	defaultDirective.IndexBy = []string{"id", "seq"}
+	context := assertly.NewContext(nil, assertly.NewDirectives(defaultDirective), nil)
+	runUseCasesWithContext(t, useCases, context)
+
+}
+
+func TestAssertStructureWithSource(t *testing.T) {
+	var useCases = []*assertUseCase{
+		{
+			Description: "data structure with index directive",
+			Expected: `{
+  "1": {
+    "@source@":"pk:1", 
+    "id":1,
+	"seq":0,
+    "name":"name 1"
+  },
+  "2": {
+    "@source@":"pk:2", 
     "id":2,
 	"seq":0,
     "name":"name 2"

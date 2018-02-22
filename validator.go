@@ -71,13 +71,13 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 	dateLayout := path.Directive(context).DefaultTimeLayout()
 	expectedTime, _ := toolbox.ToTime(expected, dateLayout)
 	if actualTime, err := toolbox.ToTime(actual, dateLayout); err == nil {
-		actual = actualTime;
+		actual = actualTime
 		if expectedTime.Equal(*actualTime) {
 			validation.PassedCount++
 			return nil
 		}
 	}
-	validation.AddFailure(NewFailure(path.Path(), NotEqualViolation, expected, actual))
+	validation.AddFailure(NewFailure(path.Source(), path.Path(), NotEqualViolation, expected, actual))
 	return nil
 }
 
@@ -90,7 +90,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	predicate := getPredicate(expected)
 	if predicate != nil {
 		if !predicate.Apply(actual) {
-			validation.AddFailure(NewFailure(path.Path(), PredicateViolation, predicate, actual))
+			validation.AddFailure(NewFailure(path.Source(), path.Path(), PredicateViolation, predicate, actual))
 		} else {
 			validation.PassedCount++
 		}
@@ -131,8 +131,14 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	expectedText := toolbox.AsString(expected)
 
 	if ! context.StrictDatTypeCheck {
+
 		if expectedTime, err := toolbox.ToTime(expectedText, directive.DefaultTimeLayout()); err == nil && expectedTime != nil {
-			return assertTime(expectedTime, actual, path, context, validation)
+			if actualTime, err := toolbox.ToTime(actual, directive.DefaultTimeLayout());err == nil {
+				if actualTime.Equal(*expectedTime) {
+					validation.PassedCount++
+					return nil
+				}
+			}
 		}
 	}
 	return assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
@@ -147,7 +153,7 @@ func isNegated(candidate string) (string, bool) {
 }
 
 func assertRegExpr(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) error {
-	expected = string(expected[2 : len(expected)-1])
+	expected = string(expected[2: len(expected)-1])
 	useMultiLine := strings.Count(actual, "\n") > 0
 	pattern := ""
 	if useMultiLine {
@@ -161,9 +167,9 @@ func assertRegExpr(isNegated bool, expected, actual string, path DataPath, conte
 	}
 	var matches = compiled.Match(([]byte)(actual))
 	if !matches && !isNegated {
-		validation.AddFailure(NewFailure(path.Path(), RegExprMatchesViolation, expected, actual))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), RegExprMatchesViolation, expected, actual))
 	} else if matches && isNegated {
-		validation.AddFailure(NewFailure(path.Path(), RegExprDoesNotMatchViolation, expected, actual))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), RegExprDoesNotMatchViolation, expected, actual))
 	} else {
 		validation.PassedCount++
 	}
@@ -175,7 +181,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 		return fmt.Errorf("invalid range format, expected /[min..max]/ or /[val1,val2,valN]/, but had:%v, path: %v", expected, path.Path())
 	}
 	actual = strings.TrimSpace(actual)
-	expected = string(expected[2 : len(expected)-2])
+	expected = string(expected[2: len(expected)-2])
 	var rangeValues = strings.Split(expected, "..")
 	var withinRange bool
 	if len(rangeValues) > 1 {
@@ -193,9 +199,9 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 		}
 	}
 	if !withinRange && !isNegated {
-		validation.AddFailure(NewFailure(path.Path(), RangeViolation, expected, actual))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), RangeViolation, expected, actual))
 	} else if withinRange && isNegated {
-		validation.AddFailure(NewFailure(path.Path(), RangeNotViolation, expected, actual))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), RangeNotViolation, expected, actual))
 	} else {
 		validation.PassedCount++
 	}
@@ -203,13 +209,13 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 }
 
 func assertContains(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) {
-	expected = string(expected[1 : len(expected)-1])
+	expected = string(expected[1: len(expected)-1])
 	contains := strings.Contains(actual, expected)
 
 	if !contains && !isNegated {
-		validation.AddFailure(NewFailure(path.Path(), ContainsViolation, expected, actual))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), ContainsViolation, expected, actual))
 	} else if contains && isNegated {
-		validation.AddFailure(NewFailure(path.Path(), DoesNotContainViolation, expected, actual))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), DoesNotContainViolation, expected, actual))
 	} else {
 		validation.PassedCount++
 	}
@@ -236,9 +242,9 @@ func assertText(expected, actual string, path DataPath, context *Context, valida
 	expected, isNegated := isNegated(expected)
 	isEqual := expected == actual
 	if !isEqual && !isNegated {
-		validation.AddFailure(NewFailure(path.Path(), EqualViolation, expected, actual))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
 	} else if isEqual && isNegated {
-		validation.AddFailure(NewFailure(path.Path(), NotEqualViolation, expected, actual))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), NotEqualViolation, expected, actual))
 	} else {
 		validation.PassedCount++
 	}
@@ -251,24 +257,26 @@ func actualMap(expected, actualValue interface{}, path DataPath, directive *Dire
 		actual = toolbox.AsMap(actualValue)
 	} else if toolbox.IsSlice(actualValue) {
 		if len(directive.IndexBy) == 0 {
-			validation.AddFailure(NewFailure(path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
+			validation.AddFailure(NewFailure(path.Source(), path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
 			return nil
 		}
 		aSlice := toolbox.AsSlice(actualValue)
 		actual = indexSliceBy(aSlice, directive.IndexBy...)
 	} else {
-		validation.AddFailure(NewFailure(path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
 		return nil
 	}
 	return actual
 }
+
+
 
 func assertMap(expected map[string]interface{}, actualValue interface{}, path DataPath, context *Context, validation *Validation) error {
 
 	directive := NewDirective(path)
 	directive.mergeFrom(path.Directive(context))
 	directive.ExtractDirectives(expected)
-
+	path.SetSource(directive.Source)
 	var actual = actualMap(expected, actualValue, path, directive, validation)
 	if actual == nil {
 		return nil
@@ -282,7 +290,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		switchValue := keysValue(actual, directive.SwitchBy...)
 		caseValue, ok := expected[switchValue]
 		if !ok {
-			validation.AddFailure(NewFailure(path.Path(), MissingCaseViolation, expected, actual, directive.SwitchBy, switchValue))
+			validation.AddFailure(NewFailure(path.Source(), path.Path(), MissingCaseViolation, expected, actual, directive.SwitchBy, switchValue))
 			return nil
 		}
 		if !toolbox.IsMap(caseValue) {
@@ -300,6 +308,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		indexable = false
 	}
 
+
 	for expectedKey, expectedValue := range expected {
 		if directive.IsDirectiveKey(expectedKey) {
 			continue
@@ -313,17 +322,18 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		actualValue, ok := actual[expectedKey]
 		if directive.KeyDoesNotExist[expectedKey] {
 			if ok {
-				validation.AddFailure(NewFailure(keyPath.Path(), KeyDoesNotExistViolation, expectedKey, expectedKey))
+				validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), KeyDoesNotExistViolation, expectedKey, expectedKey))
 			} else {
 				validation.PassedCount++
 			}
 			continue
 		}
 
+
 		if directive.KeyExists[expectedKey] {
 			if !ok {
 				availableKeys := toolbox.MapKeysToStringSlice(expected)
-				validation.AddFailure(NewFailure(keyPath.Path(), KeyExistsViolation, expectedKey, strings.Join(availableKeys, ",")))
+				validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), KeyExistsViolation, expectedKey, strings.Join(availableKeys, ",")))
 			} else {
 				validation.PassedCount++
 			}
@@ -331,7 +341,8 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		}
 
 		if !ok {
-			validation.AddFailure(NewFailure(keyPath.Path(), MissingEntryViolation, expectedValue, actualValue, expectedKey))
+			key := "key:" + expectedKey
+			validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), MissingEntryViolation, expectedValue, toolbox.MapKeysToStringSlice(actual), key))
 			continue
 		}
 		if err := assertValue(expectedValue, actualValue, keyPath, context, validation); err != nil {
@@ -343,11 +354,11 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 
 func assertSlice(expected []interface{}, actualValue interface{}, path DataPath, context *Context, validation *Validation) error {
 	if actualValue == nil {
-		validation.AddFailure(NewFailure(path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
 		return nil
 	}
 	if !toolbox.IsSlice(actualValue) {
-		validation.AddFailure(NewFailure(path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
 		return nil
 	}
 	var actual = toolbox.AsSlice(actualValue)
@@ -356,7 +367,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 			validation.PassedCount++
 			return nil
 		}
-		validation.AddFailure(NewFailure(path.Path(), LengthViolation, len(expected), len(actual)))
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), LengthViolation, len(expected), len(actual)))
 		return nil
 	}
 	directive := path.Directive(context)
@@ -383,7 +394,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 	}
 	for i := 0; i < len(expected); i++ {
 		if i >= len(actual) {
-			validation.AddFailure(NewFailure(path.Path(), LengthViolation, len(expected), len(actual)))
+			validation.AddFailure(NewFailure(path.Source(), path.Path(), LengthViolation, len(expected), len(actual)))
 			return nil
 		}
 		indexPath := path.Index(i)

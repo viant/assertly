@@ -9,6 +9,7 @@ import (
 
 //Failure represents a validation failre
 type Failure struct {
+	Source   string
 	Path     string
 	Expected interface{}
 	Actual   interface{}
@@ -47,9 +48,31 @@ outer:
 	return toolbox.AsInt(index)
 }
 
+
+
+func removeDirectives(aMap map[string]interface{}) map[string]interface{} {
+	var result = make(map[string]interface{})
+	for k, v := range aMap {
+		if strings.HasPrefix(k, "@") {
+			continue
+		}
+		result[k] = v
+	}
+	return result
+}
+
 //NewFailure creates a new failure
-func NewFailure(path string, reason string, expected, actual interface{}, args ...interface{}) *Failure {
+func NewFailure(source, path string, reason string, expected, actual interface{}, args ...interface{}) *Failure {
+
+	if expected != nil && toolbox.IsMap(expected) {
+		expected = removeDirectives(toolbox.AsMap(expected))
+	}
+	if actual != nil && toolbox.IsMap(actual) {
+		actual = removeDirectives(toolbox.AsMap(actual))
+	}
+
 	var result = &Failure{
+		Source:   source,
 		Path:     path,
 		Reason:   reason,
 		Expected: expected,
@@ -63,7 +86,7 @@ func NewFailure(path string, reason string, expected, actual interface{}, args .
 func FormatMessage(failure *Failure) string {
 	switch failure.Reason {
 	case MissingEntryViolation:
-		fmt.Sprintf("%v was missing, expected: %v", failure.Args[0], failure.Expected)
+		return fmt.Sprintf("entry for %v was missing, expected: %v, actual keys: %v", failure.Args[0], failure.Expected, failure.Actual)
 	case IncompatibleDataTypeViolation:
 		return fmt.Sprintf("actual was %T, but expected %T(%v)", failure.Actual, failure.Expected, failure.Expected)
 	case KeyExistsViolation:
@@ -135,7 +158,7 @@ func (v *Validation) MergeFrom(source *Validation) {
 func (v *Validation) Report() string {
 	var result = make([]string, 0)
 	for _, failure := range v.Failures {
-		result = append(result, failure.Message)
+		result = append(result,  failure.Path + ": " +  failure.Message)
 	}
 	result = append(result, fmt.Sprintf("Passed: %v", v.PassedCount))
 	result = append(result, fmt.Sprintf("Failed: %v", v.FailedCount))

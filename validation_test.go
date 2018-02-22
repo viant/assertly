@@ -8,25 +8,25 @@ import (
 func TestFailure_Index(t *testing.T) {
 
 	{
-		var failure = NewFailure("[/]:ad[12].we", "", nil, nil)
+		var failure = NewFailure("","[/]:ad[12].we", "", nil, nil)
 		assert.EqualValues(t, 12, failure.Index())
 	}
 	{
-		var failure = NewFailure("ad[12].we", "", nil, nil)
+		var failure = NewFailure("","ad[12].we", "", nil, nil)
 		assert.EqualValues(t, -1, failure.Index())
 	}
 	{
-		var failure = NewFailure(":ad[a].we", "", nil, nil)
+		var failure = NewFailure("",":ad[a].we", "", nil, nil)
 		assert.EqualValues(t, -1, failure.Index())
 	}
 	{
-		var failure = NewFailure(":ad[].we", "", nil, nil)
+		var failure = NewFailure("",":ad[].we", "", nil, nil)
 		assert.EqualValues(t, -1, failure.Index())
 	}
 }
 
 func TestFailure_MergeFrom(t *testing.T) {
-	var failure = NewFailure("[/]:ad[12].we", "", nil, nil)
+	var failure = NewFailure("","[/]:ad[12].we", "", nil, nil)
 	source := NewValidation()
 	source.PassedCount = 2
 	source.AddFailure(failure)
@@ -42,8 +42,8 @@ func TestFailure_MergeFrom(t *testing.T) {
 func TestValidation_Report(t *testing.T) {
 
 	source := NewValidation()
-	source.AddFailure(NewFailure(":ad[].we", "test", nil, nil))
+	source.AddFailure(NewFailure("",":ad[].we", "test", nil, nil))
 	source.PassedCount++
-	assert.EqualValues(t, "test\nPassed: 1\nFailed: 1", source.Report())
+	assert.EqualValues(t, ":ad[].we: test\nPassed: 1\nFailed: 1", source.Report())
 
 }
