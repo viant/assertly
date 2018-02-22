@@ -114,6 +114,9 @@ func toStringSlice(source interface{}) []string {
 
 func isIndexable(source map[string]interface{}) bool {
 	for _, v := range source {
+		if v == nil {
+			continue
+		}
 		if toolbox.IsMap(v) {
 			return true
 		}

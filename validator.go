@@ -82,6 +82,16 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 }
 
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
+
+	if expected == nil {
+		if actual == nil {
+			validation.PassedCount++
+			return nil
+		}
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), NotEqualViolation, expected, actual))
+		return
+	}
+
 	if text, ok := expected.(string); ok {
 		if expected, err = expandExpectedText(text, path, context); err != nil {
 			return err
@@ -278,9 +288,6 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	directive.ExtractDirectives(expected)
 	path.SetSource(directive.Source)
 	var actual = actualMap(expected, actualValue, path, directive, validation)
-	if actual == nil {
-		return nil
-	}
 	directive.ExtractDataTypes(actual)
 	if err := directive.Apply(actual); err != nil {
 		return fmt.Errorf("failed to apply directive to actual, path:%v, %v", path.Path(), err)
