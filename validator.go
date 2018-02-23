@@ -68,7 +68,7 @@ func expandExpectedText(text string, path DataPath, context *Context) (interface
 }
 
 func assertTime(expected *time.Time, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
-	dateLayout := path.Directive(context).DefaultTimeLayout()
+	dateLayout := path.Match(context).DefaultTimeLayout()
 	expectedTime, _ := toolbox.ToTime(expected, dateLayout)
 	if actualTime, err := toolbox.ToTime(actual, dateLayout); err == nil {
 		actual = actualTime
@@ -112,7 +112,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		}
 	}
 
-	dateLayout := path.Directive(context).DefaultTimeLayout()
+	dateLayout := path.Match(context).DefaultTimeLayout()
 	if toolbox.IsTime(expected) {
 		expectedTime, _ := toolbox.ToTime(expected, dateLayout)
 		return assertTime(expectedTime, actual, path, context, validation)
@@ -141,7 +141,6 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	expectedText := toolbox.AsString(expected)
 
 	if ! context.StrictDatTypeCheck {
-
 		if expectedTime, err := toolbox.ToTime(expectedText, directive.DefaultTimeLayout()); err == nil && expectedTime != nil {
 			if actualTime, err := toolbox.ToTime(actual, directive.DefaultTimeLayout());err == nil {
 				if actualTime.Equal(*expectedTime) {
@@ -284,7 +283,7 @@ func actualMap(expected, actualValue interface{}, path DataPath, directive *Dire
 func assertMap(expected map[string]interface{}, actualValue interface{}, path DataPath, context *Context, validation *Validation) error {
 
 	directive := NewDirective(path)
-	directive.mergeFrom(path.Directive(context))
+	directive.mergeFrom(path.Match(context))
 	directive.ExtractDirectives(expected)
 	path.SetSource(directive.Source)
 	var actual = actualMap(expected, actualValue, path, directive, validation)
@@ -380,7 +379,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), LengthViolation, len(expected), len(actual)))
 		return nil
 	}
-	directive := path.Directive(context)
+	directive := path.Match(context)
 
 	if toolbox.IsMap(expected[0]) {
 		first := toolbox.AsMap(expected[0])

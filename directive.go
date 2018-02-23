@@ -17,7 +17,7 @@ const (
 	SourceDirective           = "@source@"
 )
 
-//Directive represents a validation directive
+//Match represents a validation directive
 type Directive struct {
 	DataPath
 	KeyExists       map[string]bool
@@ -272,5 +272,17 @@ func NewDirective(dataPath DataPath) *Directive {
 	var result = &Directive{
 		DataPath: dataPath,
 	}
+	//inherit default time from first ancestor
+	dataPath.Each(func(path DataPath) bool {
+		directive := path.Directive()
+		if directive != nil {
+			if directive.TimeLayout != "" {
+				result.TimeLayout = directive.TimeLayout
+				return false
+			}
+		}
+		return true
+	})
+
 	return result
 }

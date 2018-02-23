@@ -25,8 +25,15 @@ type DataPath interface {
 	//Get source from this path
 	Source() string
 
-	//Directive returns a directive for this path
-	Directive(context *Context) *Directive
+	//Match returns a matched directive for this path
+	Match(context *Context) *Directive
+
+
+	//Match returns a directive for this path
+	Directive() *Directive
+
+	//Each traverse each data path node upto parent
+	Each(callback func(path DataPath) bool)
 }
 
 type dataPath struct {
@@ -73,7 +80,13 @@ func (p *dataPath) Source() string {
 	return result
 }
 
-func (p *dataPath) Directive(context *Context) *Directive {
+
+func (p *dataPath) Directive() *Directive {
+	return p.directive
+}
+
+
+func (p *dataPath) Match(context *Context) *Directive {
 	if p.directive != nil {
 		return p.directive
 	}
@@ -90,6 +103,18 @@ func (p *dataPath) Directive(context *Context) *Directive {
 	p.directive = directive
 	return directive
 }
+
+
+func (p *dataPath) Each(callback func(path DataPath) bool) {
+	var node = p
+	for node != nil {
+		if !callback(node) {
+			break
+		}
+		node = node.parent
+	}
+}
+
 
 func (p *dataPath) each(callback func(path *dataPath) bool) {
 	var node = p

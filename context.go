@@ -32,6 +32,7 @@ func NewContext(ctx toolbox.Context, directives *Directives, evaluator *toolbox.
 	}
 }
 
+
 //NewDefaultContext returns default context
 func NewDefaultContext() *Context {
 	return NewContext(nil, nil, nil)
