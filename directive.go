@@ -10,6 +10,7 @@ const (
 	KeyExistsDirective        = "@exists@"
 	KeyDoesNotExistsDirective = "@!exists@"
 	TimeFormatDirective       = "@timeFormat@"
+	TimeLayoutDirective       = "@timeLayout@"
 	SwitchByDirective         = "@switchCaseBy@"
 	CastDataTypeDirective     = "@cast@"
 	IndexByDirective          = "@indexBy@"
@@ -117,11 +118,11 @@ func (d *Directive) Add(target map[string]interface{}) {
 	}
 	if len(d.TimeLayouts) > 0 {
 		for k, v := range d.TimeLayouts {
-			target[TimeFormatDirective+k] = v
+			target[TimeLayoutDirective+k] = v
 		}
 	}
 	if d.TimeLayout != "" {
-		target[TimeFormatDirective] = d.TimeLayout
+		target[TimeLayoutDirective] = d.TimeLayout
 	}
 }
 
@@ -164,6 +165,15 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 				}
 				continue
 			}
+			if strings.HasPrefix(k, TimeLayoutDirective) {
+				var key = strings.Replace(k, TimeLayoutDirective, "", 1)
+				if key == "" {
+					d.TimeLayout = text
+				} else {
+					d.AddTimeLayout(key, text)
+				}
+				continue
+			}
 			if strings.HasPrefix(k, CastDataTypeDirective) {
 				var key = strings.Replace(k, CastDataTypeDirective, "", 1)
 				d.AddDataType(key, text)
@@ -198,7 +208,7 @@ func (d *Directive) applyTimeFormat(aMap map[string]interface{}) error {
 	}
 	for key, layout := range d.TimeLayouts {
 		val, ok := aMap[key]
-		if !ok {
+		if !ok || val == nil {
 			continue
 		}
 		timeValue, err := toolbox.ToTime(val, layout)
@@ -219,7 +229,7 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 		var casted interface{}
 
 		val, ok := aMap[key]
-		if !ok {
+		if !ok || val == nil {
 			continue
 		}
 
@@ -247,11 +257,7 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 
 //IsDirectiveKey returns true if key is directive
 func (d *Directive) IsDirectiveKey(key string) bool {
-	return strings.HasPrefix(key, TimeFormatDirective) ||
-		strings.HasPrefix(key, CastDataTypeDirective) ||
-		key == IndexByDirective ||
-		key == SwitchByDirective ||
-		key == SourceDirective
+	return strings.HasPrefix(key, "@") && strings.Count(key, "@") > 1
 }
 
 //IsDirectiveKey returns true if value is directive

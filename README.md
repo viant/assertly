@@ -275,6 +275,44 @@ expected := map[string]interface{}{
 ```
 
 
+
+
+
+## Time layout
+
+@timeLayout@ - time format directive instructs a validator to convert data into time with specified time format  before actual validation takes place.
+
+Time layout uses golang time layout.
+
+
+
+
+**Example**
+
+\#expected 
+
+```go
+expected := map[string]interface{}{
+    "@timeFormat@date": "yyyy-MM-dd",
+    "@timeFormat@ts": "yyyy-MM-dd hh:mm:ss"
+    "@timeFormat@" "yyyy-MM-dd hh:mm:ss" //default time format       
+    "id":123,
+    "date": "2019-01-01",
+    "ts": "2019-01-01 12:00:01",
+}
+```
+
+\#actual 
+
+```go
+expected := map[string]interface{}{
+	"id":123,
+    "date": "2019-01-01 12:00:01",,
+    "ts": "2019-01-01 12:00:01",
+}
+```
+
+
 ## Cast data type
 
 @cast@ - instruct a validator to convert data to the specified data type before actual validation takes place.

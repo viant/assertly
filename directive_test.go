@@ -127,8 +127,8 @@ func TestDirective_Add(t *testing.T) {
 	directive.Add(target)
 
 	assert.EqualValues(t, "float", target[CastDataTypeDirective+"f1"])
-	assert.EqualValues(t, "2016-01-02", target[TimeFormatDirective])
-	assert.EqualValues(t, "2016-01", target[TimeFormatDirective+"t1"])
+	assert.EqualValues(t, "2016-01-02", target[TimeLayoutDirective])
+	assert.EqualValues(t, "2016-01", target[TimeLayoutDirective+"t1"])
 	assert.EqualValues(t, []string{"id"}, target[IndexByDirective])
 	assert.EqualValues(t, []string{"case"}, target[SwitchByDirective])
 
