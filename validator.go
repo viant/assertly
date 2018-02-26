@@ -77,7 +77,7 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 			return nil
 		}
 	}
-	validation.AddFailure(NewFailure(path.Source(), path.Path(), NotEqualViolation, expected, actual))
+	validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
 	return nil
 }
 
@@ -142,7 +142,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 
 	if ! context.StrictDatTypeCheck {
 		if expectedTime, err := toolbox.ToTime(expectedText, directive.DefaultTimeLayout()); err == nil && expectedTime != nil {
-			if actualTime, err := toolbox.ToTime(actual, directive.DefaultTimeLayout());err == nil {
+			if actualTime, err := toolbox.ToTime(actual, directive.DefaultTimeLayout()); err == nil {
 				if actualTime.Equal(*expectedTime) {
 					validation.PassedCount++
 					return nil
@@ -278,8 +278,6 @@ func actualMap(expected, actualValue interface{}, path DataPath, directive *Dire
 	return actual
 }
 
-
-
 func assertMap(expected map[string]interface{}, actualValue interface{}, path DataPath, context *Context, validation *Validation) error {
 
 	directive := NewDirective(path)
@@ -317,7 +315,6 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		indexable = false
 	}
 
-
 	for expectedKey, expectedValue := range expected {
 		if directive.IsDirectiveKey(expectedKey) {
 			continue
@@ -337,7 +334,6 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 			}
 			continue
 		}
-
 
 		if directive.KeyExists[expectedKey] {
 			if !ok {
@@ -361,6 +357,22 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	return nil
 }
 
+func asCaseInsensitiveSlice(aSlice []interface{}) []interface{} {
+	var result = make([]interface{}, 0)
+	for _, item := range aSlice {
+		result = append(result, asCaseInsensitiveMap(toolbox.AsMap(item)))
+	}
+	return result
+}
+
+func asCaseInsensitiveMap(aMap map[string]interface{}) map[string]interface{} {
+	var result = make(map[string]interface{})
+	for k, v := range aMap {
+		result[strings.ToUpper(k)] = v
+	}
+	return result
+}
+
 func assertSlice(expected []interface{}, actualValue interface{}, path DataPath, context *Context, validation *Validation) error {
 	if actualValue == nil {
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
@@ -380,13 +392,19 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 		return nil
 	}
 	directive := path.Match(context)
-
 	if toolbox.IsMap(expected[0]) {
 		first := toolbox.AsMap(expected[0])
 
 		if directive.ExtractDirectives(first) {
 			expected = expected[1:]
 		}
+
+		if ! directive.CaseSensitive {
+			expected = asCaseInsensitiveSlice(expected)
+			actual = asCaseInsensitiveSlice(actual)
+			directive.ApplyCaseInsensitive()
+		}
+
 		for i := 0; i < len(actual); i++ {
 			var actualMap = toolbox.AsMap(actual[i])
 			directive.ExtractDataTypes(actualMap)
@@ -398,9 +416,6 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 			directive.Add(expectedMap)
 			directive.Apply(expectedMap)
 		}
-
-
-
 		shouldIndex := len(directive.IndexBy) > 0
 		if shouldIndex {
 			expectedMap := indexSliceBy(expected, directive.IndexBy...)

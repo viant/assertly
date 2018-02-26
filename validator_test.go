@@ -213,6 +213,65 @@ func TestAssertMap(t *testing.T) {
 	runUseCases(t, useCases)
 }
 
+
+func TestAssert_CaseInsensitive(t *testing.T) {
+
+	var useCases = []*assertUseCase{
+		{
+			Description: "slice test",
+			Expected:    `[
+  {
+    "@caseSensitive@": false,
+    "@indexBy@": [
+      "ID"
+    ],
+    "@timeFormat@modified": "yyyy-MM-dd HH:mm:ss"
+  },
+  {
+    "active": true,
+    "comments": "dsunit test",
+    "id": 1,
+    "modified": "2016-03-01 03:10:00",
+    "salary": 12400,
+    "username": "Dudi"
+	"@source":"s1",
+  },
+  {
+    "active": true,
+    "comments": "def",
+    "id": 2,
+    "modified": "2016-03-01 05:10:00",
+    "salary": 12600,
+    "username": "Rudi"
+  }
+]`,
+			Actual:      `[
+  {
+    "ACTIVE": 1,
+    "COMMENTS": "dsunit test",
+    "ID": 1,
+    "MODIFIED": "2016-03-01 03:10:00-08:00",
+    "SALARY": 12400,
+    "USERNAME": "Dudi"
+  },
+  {
+    "ACTIVE": 1,
+    "COMMENTS": "def",
+    "ID": 2,
+    "MODIFIED": "2016-03-01 05:10:00-08:00",
+    "SALARY": 12600,
+    "USERNAME": "Rudi"
+  }
+]
+`,
+			PassedCount: 12,
+		},
+	}
+	runUseCases(t, useCases)
+
+
+}
+
 func TestAssertSlice(t *testing.T) {
 	var useCases = []*assertUseCase{
 		{
@@ -740,6 +799,9 @@ func runUseCases(t *testing.T, useCases []*assertUseCase) {
 	for _, useCase := range useCases {
 		path := assertly.NewDataPath("/")
 		validation, err := assertly.Assert(useCase.Expected, useCase.Actual, path)
+
+		fmt.Println(validation.Report())
+
 		if err != nil {
 			if useCase.HasError {
 				continue
@@ -747,9 +809,11 @@ func runUseCases(t *testing.T, useCases []*assertUseCase) {
 			assert.Nil(t, err, useCase.Description)
 			continue
 		} else if useCase.HasError {
+
 			assert.NotNil(t, err, useCase.Description)
 			continue
 		}
+
 		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, useCase.Description)
 		assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, useCase.Description)
 	}

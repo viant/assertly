@@ -14,6 +14,7 @@ const (
 	SwitchByDirective         = "@switchCaseBy@"
 	CastDataTypeDirective     = "@cast@"
 	IndexByDirective          = "@indexBy@"
+	CaseSensitiveDirective    = "@caseSensitive@"
 	SourceDirective           = "@source@"
 )
 
@@ -23,6 +24,7 @@ type Directive struct {
 	KeyExists       map[string]bool
 	KeyDoesNotExist map[string]bool
 	TimeLayout      string
+	CaseSensitive   bool
 	TimeLayouts     map[string]string
 	DataType        map[string]string
 	SwitchBy        []string
@@ -85,21 +87,30 @@ func (d *Directive) ExtractDataTypes(aMap map[string]interface{}) {
 		} else if toolbox.IsBool(v) {
 			d.AddDataType(k, "bool")
 		} else if toolbox.IsTime(v) {
-			timeValue := toolbox.AsTime(v, toolbox.DefaultDateLayout)
-			var dateFormat = "yyyy-MM-dd"
-			if timeValue.Hour() > 0 {
-				dateFormat += " hh"
-				if timeValue.Minute() > 0 {
-					dateFormat += ":mm"
-					if timeValue.Second() > 0 {
-						dateFormat += ":ss"
-					}
-				}
-			}
+			var dateFormat = "yyyy-MM-dd HH:mm:ss.SSSZ"
 			layout := toolbox.DateFormatToLayout(dateFormat)
 			d.AddTimeLayout(k, layout)
 		}
 	}
+}
+
+func (d *Directive) asCaseInsensitveMap(aMap map[string]string) map[string]string {
+	if len(aMap) == 0 {
+		return aMap
+	}
+	var result = make(map[string]string)
+	for k, v := range aMap {
+		result[strings.ToUpper(k)] = v
+	}
+	return result
+}
+
+func (d *Directive) ApplyCaseInsensitive() {
+	if len(d.IndexBy) > 0 {
+		d.IndexBy = strings.Split(strings.ToUpper(strings.Join(d.IndexBy, ",")), ",")
+	}
+	d.TimeLayouts = d.asCaseInsensitveMap(d.TimeLayouts)
+	d.DataType = d.asCaseInsensitveMap(d.DataType)
 }
 
 //Add adds by to supplied target
@@ -143,6 +154,17 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 			d.IndexBy = toStringSlice(v)
 			continue
 		}
+
+		if k == IndexByDirective {
+			d.IndexBy = toStringSlice(v)
+			continue
+		}
+
+		if k == CaseSensitiveDirective {
+			d.CaseSensitive = toolbox.AsBoolean(v)
+			continue
+		}
+
 		if k == SourceDirective {
 			d.Source = toolbox.AsString(v)
 			continue
@@ -266,11 +288,11 @@ func (d *Directive) IsDirectiveValue(value string) bool {
 		value == KeyDoesNotExistsDirective
 }
 
-
 //NewDirective creates a new directive for supplied path
 func NewDirective(dataPath DataPath) *Directive {
 	var result = &Directive{
-		DataPath: dataPath,
+		DataPath:      dataPath,
+		CaseSensitive: true,
 	}
 	//inherit default time from first ancestor
 	dataPath.Each(func(path DataPath) bool {

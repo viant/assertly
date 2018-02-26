@@ -159,6 +159,7 @@ Directive is an instruction provide validator with transformation or validation 
 	SwitchByDirective         = "@switchCaseBy@"
 	CastDataTypeDirective     = "@cast@"
 	IndexByDirective          = "@indexBy@"
+    CaseSensitiveDirective    =  @caseSensitive@
 	SourceDirective           = "@source@"
 
 
@@ -349,6 +350,9 @@ Supported data type casting:
 ```
 
 
+## CaseSensitiveDirective
+
+By default map key match is case sensitive, directive allows to disable that behaviours.
 
 ## Source directive
 
