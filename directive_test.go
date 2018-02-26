@@ -104,10 +104,7 @@ func TestDirective_ExtractDataTypes(t *testing.T) {
 		assert.EqualValues(t, "int", directive.DataType["i"])
 		assert.EqualValues(t, "bool", directive.DataType["b"])
 
-		assert.EqualValues(t, "2006-01-02", directive.TimeLayouts["d1"])
-		assert.EqualValues(t, "2006-01-02 03", directive.TimeLayouts["d2"])
-		assert.EqualValues(t, "2006-01-02 03:04", directive.TimeLayouts["d3"])
-		assert.EqualValues(t, "2006-01-02 03:04:05", directive.TimeLayouts["d4"])
+		assert.EqualValues(t, "2006-01-02 15:04:05.000-07", directive.TimeLayouts["d4"])
 
 	}
 

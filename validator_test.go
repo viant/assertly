@@ -218,7 +218,7 @@ func TestAssert_CaseInsensitive(t *testing.T) {
 
 	var useCases = []*assertUseCase{
 		{
-			Description: "slice test",
+			Description: "case sensitive",
 			Expected:    `[
   {
     "@caseSensitive@": false,
@@ -233,8 +233,8 @@ func TestAssert_CaseInsensitive(t *testing.T) {
     "id": 1,
     "modified": "2016-03-01 03:10:00",
     "salary": 12400,
-    "username": "Dudi"
-	"@source":"s1",
+    "username": "Dudi",
+    "@source@":"s1"
   },
   {
     "active": true,
@@ -250,7 +250,7 @@ func TestAssert_CaseInsensitive(t *testing.T) {
     "ACTIVE": 1,
     "COMMENTS": "dsunit test",
     "ID": 1,
-    "MODIFIED": "2016-03-01 03:10:00-08:00",
+    "MODIFIED": "2016-03-01 03:10:00",
     "SALARY": 12400,
     "USERNAME": "Dudi"
   },
@@ -258,12 +258,11 @@ func TestAssert_CaseInsensitive(t *testing.T) {
     "ACTIVE": 1,
     "COMMENTS": "def",
     "ID": 2,
-    "MODIFIED": "2016-03-01 05:10:00-08:00",
+    "MODIFIED": "2016-03-01 05:10:00",
     "SALARY": 12600,
     "USERNAME": "Rudi"
   }
-]
-`,
+]`,
 			PassedCount: 12,
 		},
 	}
@@ -799,9 +798,6 @@ func runUseCases(t *testing.T, useCases []*assertUseCase) {
 	for _, useCase := range useCases {
 		path := assertly.NewDataPath("/")
 		validation, err := assertly.Assert(useCase.Expected, useCase.Actual, path)
-
-		fmt.Println(validation.Report())
-
 		if err != nil {
 			if useCase.HasError {
 				continue
