@@ -54,13 +54,18 @@ import(
 
 func Test_XX(t *testing.T) {
     
-    validation, err := assertly.Assert(expected, actual, assertly.NewDataPath("/"))
-   	assert.EqualValues(t, 0, validation.FailedCount, validation.Report())
    	
    	
    	var actualRecords []*User{} = //get actual
    	var expectedRecords []*User{} = //get expected
    	assertly.AssertValues(t, expectedRecords, actualRecords)
+   	
+   	
+   	
+   	//or with custom path and testing.T integration
+   	validation, err := assertly.Assert(expected, actual, assertly.NewDataPath("/"))
+    assert.EqualValues(t, 0, validation.FailedCount, validation.Report())
+
    	
 }
 
