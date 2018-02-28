@@ -25,6 +25,7 @@ func TestFailure_Index(t *testing.T) {
 	}
 }
 
+
 func TestFailure_MergeFrom(t *testing.T) {
 	var failure = NewFailure("","[/]:ad[12].we", "", nil, nil)
 	source := NewValidation()
@@ -38,6 +39,8 @@ func TestFailure_MergeFrom(t *testing.T) {
 	assert.EqualValues(t, 2, target.FailedCount)
 	assert.EqualValues(t, 2, len(target.Failures))
 }
+
+
 
 func TestValidation_Report(t *testing.T) {
 

@@ -7,6 +7,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"testing"
+	"path"
 )
 
 const (
@@ -27,11 +29,22 @@ const (
 	PredicateViolation            = "should pass predicate"
 )
 
+
 //Assert validates expected against actual data structure for supplied path
 func Assert(expected, actual interface{}, path DataPath) (*Validation, error) {
 	context := NewDefaultContext()
 	return AssertWithContext(expected, actual, path, context)
 }
+
+
+func handleFailure(t *testing.T, args ... interface{}) {
+		file, method, line := toolbox.DiscoverCaller(2, 10, "stack_helper.go", "validator.go")
+		_, file = path.Split(file)
+		fmt.Printf("%v:%v (%v)\n%v\n", file, line, method, fmt.Sprint(args))
+		t.Fail()
+}
+
+
 
 //AssertWithContext validates expected against actual data structure for supplied path and context
 func AssertWithContext(expected, actual interface{}, path DataPath, context *Context) (*Validation, error) {
@@ -82,7 +95,6 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 }
 
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
-
 	if expected == nil {
 		if actual == nil {
 			validation.PassedCount++
@@ -116,11 +128,13 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	if toolbox.IsTime(expected) {
 		expectedTime, _ := toolbox.ToTime(expected, dateLayout)
 		return assertTime(expectedTime, actual, path, context, validation)
-	} else if toolbox.IsStruct(expected) {
+	} else if toolbox.IsStruct(expected) ||  toolbox.IsStruct(actual)  {
 		var converter = toolbox.NewColumnConverter(dateLayout)
-		var expectedMap = make(map[string]interface{})
-		converter.AssignConverted(&expectedMap, expected)
-		expected = expectedMap
+		if toolbox.IsStruct(expected) {
+			var expectedMap= make(map[string]interface{})
+			converter.AssignConverted(&expectedMap, expected)
+			expected = expectedMap
+		}
 		if toolbox.IsStruct(actual) {
 			var actualMap = make(map[string]interface{})
 			converter.AssignConverted(&actualMap, actual)
@@ -422,8 +436,8 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 			actualMap := indexSliceBy(actual, directive.IndexBy...)
 			return assertMap(expectedMap, actualMap, path, context, validation)
 		}
-
 	}
+
 	for i := 0; i < len(expected); i++ {
 		if i >= len(actual) {
 			validation.AddFailure(NewFailure(path.Source(), path.Path(), LengthViolation, len(expected), len(actual)))

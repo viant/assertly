@@ -83,6 +83,7 @@ func NewFailure(source, path string, reason string, expected, actual interface{}
 	return result
 }
 
+
 func FormatMessage(failure *Failure) string {
 	switch failure.Reason {
 	case MissingEntryViolation:
