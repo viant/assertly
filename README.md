@@ -56,8 +56,8 @@ func Test_XX(t *testing.T) {
     
    	
    	
-   	var actualRecords []*User{} = //get actual
-   	var expectedRecords []*User{} = //get expected
+   	var actualRecords []*User = //get actual
+   	var expectedRecords []*User = //get expected
    	assertly.AssertValues(t, expectedRecords, actualRecords)
    	
    	
