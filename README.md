@@ -64,7 +64,7 @@ func Test_XX(t *testing.T) {
    	
    	//or with custom path and testing.T integration
    	validation, err := assertly.Assert(expected, actual, assertly.NewDataPath("/"))
-    assert.EqualValues(t, 0, validation.FailedCount, validation.Report())
+   	assert.EqualValues(t, 0, validation.FailedCount, validation.Report())
 
    	
 }
