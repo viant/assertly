@@ -99,7 +99,7 @@ func FormatMessage(failure *Failure) string {
 	case NotEqualViolation:
 		return fmt.Sprintf("actual(%T): '%v' was equal (%T) '%v'", failure.Actual, failure.Actual, failure.Expected, failure.Expected)
 	case LengthViolation:
-		return fmt.Sprintf("actual length '%v'  was not equal: '%v'", failure.Actual, failure.Actual)
+		return fmt.Sprintf("actual length %v  was not equal: %v", failure.Actual, failure.Expected)
 	case MissingCaseViolation:
 		switchBy := failure.Args[0].([]string)
 		caseValue := toolbox.AsString(failure.Args[1])
