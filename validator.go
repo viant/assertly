@@ -27,6 +27,7 @@ const (
 	ContainsViolation             = "should contain fragment"
 	DoesNotContainViolation       = "should not contain fragment"
 	PredicateViolation            = "should pass predicate"
+	ValueWasNil           		  = "should have not nil"
 )
 
 
@@ -275,7 +276,7 @@ func assertText(expected, actual string, path DataPath, context *Context, valida
 }
 
 func actualMap(expected, actualValue interface{}, path DataPath, directive *Directive, validation *Validation) map[string]interface{} {
-	var actual map[string]interface{} = nil
+	var actual map[string]interface{}
 	if toolbox.IsMap(actualValue) {
 		actual = toolbox.AsMap(actualValue)
 	} else if toolbox.IsSlice(actualValue) {
@@ -293,7 +294,14 @@ func actualMap(expected, actualValue interface{}, path DataPath, directive *Dire
 }
 
 func assertMap(expected map[string]interface{}, actualValue interface{}, path DataPath, context *Context, validation *Validation) error {
-
+	if actualValue == nil {
+		if expected == nil {
+			validation.PassedCount++
+			return nil
+		}
+		validation.AddFailure(NewFailure(path.Source(), path.Path(), ValueWasNil, nil, expected))
+		return nil
+	}
 	directive := NewDirective(path)
 	directive.mergeFrom(path.Match(context))
 	directive.ExtractDirectives(expected)

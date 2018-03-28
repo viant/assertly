@@ -87,18 +87,17 @@ Validation rules:
 6) Directive and macros/predicate provide validation extension
 7) The following expression can be used on any data structure level:
 
-| Validation Type |  input | expected expression |
-| --- | --- | --- |
-| Equal |  actual | expected |
-| Not Equal |  actual | !expected |
-| Contains | actual | /expected/|
-| Not Contains | actual | !/expected/|
-| RegExpr | actual | ~/expected/ |
-| Not RegExpr | actual | !~/expected/ |
-| Between | actual | /[minExpected..maxExpected]/ |
-| exists | n/a | { "key": "@exists@" }
-| not exists | n/a | { "key": "@!exists@" }
-
+| Validation Type |  input | expected expression | example | 
+| --- | --- | --- | --- | 
+| Equal |  actual | expected | a:a |
+| Not Equal |  actual | !expected | a:!b |
+| Contains | actual | /expected/| abcd:/bc/|
+| Not Contains | actual | !/expected/| abcd:!/xc/ |
+| RegExpr | actual | ~/expected/ | 1234a:/\d+/ |
+| Not RegExpr | actual | !~/expected/ | 1234:!/\w/ |
+| Between | actual | /[minExpected..maxExpected]/ | 12:/[1..13]/ |
+| exists | n/a | { "key": "@exists@" } | |
+| not exists | n/a | { "key": "@!exists@" } | |
 
 **example**:
 
