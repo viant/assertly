@@ -835,6 +835,7 @@ func runUseCasesWithContext(t *testing.T, useCases []*assertUseCase, context *as
 	}
 }
 
+
 func TestAssertStructure(t *testing.T) {
 	var useCases = []*assertUseCase{
 
@@ -945,13 +946,133 @@ func TestAssertStructureWithIndexDirective(t *testing.T) {
 			PassedCount: 5,
 			FailedCount: 1,
 		},
+
+
 	}
+
+
+
 	defaultDirective := assertly.NewDirective(assertly.NewDataPath(""))
 	defaultDirective.IndexBy = []string{"id", "seq"}
 	context := assertly.NewContext(nil, assertly.NewDirectives(defaultDirective), nil)
 	runUseCasesWithContext(t, useCases, context)
 
 }
+
+
+func TestAssertMultiIndexBy(t *testing.T) {
+	var useCases = []*assertUseCase{
+
+
+		{
+			Description: "data structure with index directive",
+			Expected: `{
+  "rr": {
+    "id": "602b3d53-44f6-11e8-aa2a-5d0983199cde",
+    "timestamp": "2018-04-20 23:56:00.109+00",
+    "pp": {
+      "Id": "602b3d51-44f6-11e8-aa2a-5d0983199cde",
+      "seg": [
+
+		{
+			"@indexBy@":"providerId"
+
+		},
+  		{
+          "providerId": 501,
+          "ids": [
+            49
+          ]
+        },
+        {
+          "pId": -501,
+          "ids": [
+            49
+          ]
+        }
+      
+      ]
+    },
+    "ff": {
+      "p": {
+        "rp": 0.045,
+        "op": 0.045
+      },
+      "alg": {
+        "max": 0.06
+      }
+    },
+    "ml": [
+  	  {
+		"@indexBy@":"key"
+      },
+      {
+		"key": "NU_b",
+        "value": "-1"
+      },
+      {
+        "key": "XR_b",
+        "value": "1"
+      }
+    
+    ]
+  }
+}`,
+			Actual: 	`{
+  "rr": {
+    "id": "602b3d53-44f6-11e8-aa2a-5d0983199cde",
+    "timestamp": "2018-04-20 23:56:00.109+00",
+    "pp": {
+      "Id": "602b3d51-44f6-11e8-aa2a-5d0983199cde",
+      "seg": [
+        {
+          "pId": -501,
+          "ids": [
+            49
+          ]
+        },
+        {
+          "providerId": 501,
+          "ids": [
+            49
+          ]
+        }
+      ]
+    },
+    "ff": {
+      "p": {
+        "rp": 0.045,
+        "op": 0.045
+      },
+      "alg": {
+        "max": 0.06
+      }
+    },
+    "ml": [
+      {
+        "key": "XR_b",
+        "value": "1"
+      },
+      {
+        "key": "NU_b",
+        "value": "-1"
+      }
+    ]
+  }
+}`,
+			PassedCount: 14,
+			FailedCount: 0,
+		},
+
+	}
+
+
+
+	context := assertly.NewDefaultContext()
+	runUseCasesWithContext(t, useCases, context)
+
+}
+
 
 func TestAssertStructureWithSource(t *testing.T) {
 	var useCases = []*assertUseCase{
