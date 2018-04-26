@@ -74,7 +74,10 @@ func mergeBoolMap(source map[string]bool, target *map[string]bool) {
 func keysValue(aMap map[string]interface{}, keys ...string) string {
 	var result = ""
 	for _, key := range keys {
-		value := aMap[key]
+		value, ok := aMap[key]
+		if ! ok {
+			value = ""
+		}
 		result += toolbox.AsString(value)
 	}
 	return result
@@ -103,7 +106,7 @@ func indexSliceBy(aSlice []interface{}, indexFields ...string) map[string]interf
 
 func toStringSlice(source interface{}) []string {
 	if !toolbox.IsSlice(source) {
-		return []string{toolbox.AsString(source)}
+		return strings.Split(toolbox.AsString(source), ",")
 	}
 	var result = make([]string, 0)
 	for _, item := range toolbox.AsSlice(source) {

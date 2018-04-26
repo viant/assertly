@@ -832,6 +832,9 @@ func runUseCasesWithContext(t *testing.T, useCases []*assertUseCase, context *as
 		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, useCase.Description)
 		assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, useCase.Description)
 		assert.EqualValues(t, useCase.FailedCount > 0, validation.HasFailure())
+		if validation.HasFailure() {
+			fmt.Printf("%v\n", validation.Report())
+		}
 	}
 }
 
@@ -965,7 +968,7 @@ func TestAssertMultiIndexBy(t *testing.T) {
 
 
 		{
-			Description: "data structure with index directive",
+			Description: "data structure with multi index directive",
 			Expected: `{
   "rr": {
     "id": "602b3d53-44f6-11e8-aa2a-5d0983199cde",
@@ -975,11 +978,11 @@ func TestAssertMultiIndexBy(t *testing.T) {
       "seg": [
 
 		{
-			"@indexBy@":"providerId"
+			"@indexBy@":"pId,id"
 
 		},
   		{
-          "providerId": 501,
+          "pId": 501,
           "ids": [
             49
           ]
@@ -987,7 +990,13 @@ func TestAssertMultiIndexBy(t *testing.T) {
         {
           "pId": -501,
           "ids": [
-            49
+            -49
+          ]
+        },
+        {
+          "id": -502,
+          "ids": [
+            50
           ]
         }
       
@@ -1025,16 +1034,23 @@ func TestAssertMultiIndexBy(t *testing.T) {
     "pp": {
       "Id": "602b3d51-44f6-11e8-aa2a-5d0983199cde",
       "seg": [
-        {
-          "pId": -501,
+    {
+          "pId": 501,
           "ids": [
             49
           ]
         },
+      
         {
-          "providerId": 501,
+          "id": -502,
           "ids": [
-            49
+            50
+          ]
+        },
+  		{
+          "pId": -501,
+          "ids": [
+            -49
           ]
         }
       ]
@@ -1060,7 +1076,7 @@ func TestAssertMultiIndexBy(t *testing.T) {
     ]
   }
 }`,
-			PassedCount: 14,
+			PassedCount: 16,
 			FailedCount: 0,
 		},
 
