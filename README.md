@@ -171,6 +171,7 @@ Directive is an instruction provide validator with transformation or validation 
 	IndexByDirective          = "@indexBy@"
     CaseSensitiveDirective    =  @caseSensitive@
 	SourceDirective           = "@source@"
+	SourceTextDirective       = "@sortText@"
 
 
 ### Index by
