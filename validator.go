@@ -9,6 +9,7 @@ import (
 	"time"
 	"testing"
 	"path"
+	"sort"
 )
 
 const (
@@ -418,33 +419,59 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 
 	if toolbox.IsMap(expected[0]) {
 		first := toolbox.AsMap(expected[0])
-
 		if directive.ExtractDirectives(first) {
 			expected = expected[1:]
 		}
 
-		if ! directive.CaseSensitive {
-			expected = asCaseInsensitiveSlice(expected)
-			actual = asCaseInsensitiveSlice(actual)
-			directive.ApplyCaseInsensitive()
-		}
 
-		for i := 0; i < len(actual); i++ {
-			var actualMap = toolbox.AsMap(actual[i])
-			directive.ExtractDataTypes(actualMap)
-		}
+		if directive.SortText {
+			var expectedSlice  = []string{}
+			toolbox.ProcessSlice(expected, func(item interface{}) bool {
+				expectedSlice = append(expectedSlice, toolbox.AsString(item))
+				return true
+			})
+			var actualSlice = []string{}
+			toolbox.ProcessSlice(expected, func(item interface{}) bool {
+				actualSlice = append(actualSlice, toolbox.AsString(item))
+				return true
+			})
 
-		//add directive to expected
-		for i := 0; i < len(expected); i++ {
-			var expectedMap = toolbox.AsMap(expected[i])
-			directive.Add(expectedMap)
-			directive.Apply(expectedMap)
-		}
-		shouldIndex := len(directive.IndexBy) > 0
-		if shouldIndex {
-			expectedMap := indexSliceBy(expected, directive.IndexBy...)
-			actualMap := indexSliceBy(actual, directive.IndexBy...)
-			return assertMap(expectedMap, actualMap, path, context, validation)
+			sort.Strings(expectedSlice)
+			expected  = []interface{}{}
+			for _, item := range expectedSlice {
+				expected = append(expected, item)
+			}
+
+   			sort.Strings(actualSlice)
+			actual  = []interface{}{}
+			for _, item := range actualSlice {
+				actual = append(actual, item)
+			}
+
+		} else {
+			if ! directive.CaseSensitive {
+				expected = asCaseInsensitiveSlice(expected)
+				actual = asCaseInsensitiveSlice(actual)
+				directive.ApplyCaseInsensitive()
+			}
+
+			for i := 0; i < len(actual); i++ {
+				var actualMap= toolbox.AsMap(actual[i])
+				directive.ExtractDataTypes(actualMap)
+			}
+
+			//add directive to expected
+			for i := 0; i < len(expected); i++ {
+				var expectedMap= toolbox.AsMap(expected[i])
+				directive.Add(expectedMap)
+				directive.Apply(expectedMap)
+			}
+			shouldIndex := len(directive.IndexBy) > 0
+			if shouldIndex {
+				expectedMap := indexSliceBy(expected, directive.IndexBy...)
+				actualMap := indexSliceBy(actual, directive.IndexBy...)
+				return assertMap(expectedMap, actualMap, path, context, validation)
+			}
 		}
 	}
 

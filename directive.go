@@ -16,6 +16,7 @@ const (
 	IndexByDirective          = "@indexBy@"
 	CaseSensitiveDirective    = "@caseSensitive@"
 	SourceDirective           = "@source@"
+	SortTextDirective         = "@sortText@"
 )
 
 //Match represents a validation directive
@@ -30,6 +31,7 @@ type Directive struct {
 	SwitchBy        []string
 	IndexBy         []string
 	Source          string
+	SortText        bool
 }
 
 func (d *Directive) mergeFrom(source *Directive) {
@@ -42,6 +44,14 @@ func (d *Directive) mergeFrom(source *Directive) {
 	}
 	if d.TimeLayout == "" {
 		d.TimeLayout = source.TimeLayout
+	}
+}
+
+
+//AddKeyExists adds key exists directive
+func (d *Directive) AddSort(key string) {
+	if key == SortTextDirective {
+		d.SortText = true
 	}
 }
 
@@ -145,8 +155,14 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 		if d.IsDirectiveKey(k) {
 			directiveCount++
 		}
+
+
 		if k == SwitchByDirective {
 			d.SwitchBy = toStringSlice(v)
+			continue
+		}
+		if k == SortTextDirective {
+			d.SortText = toolbox.AsBoolean(v)
 			continue
 		}
 
@@ -164,6 +180,8 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 			d.CaseSensitive = toolbox.AsBoolean(v)
 			continue
 		}
+
+
 
 		if k == SourceDirective {
 			d.Source = toolbox.AsString(v)

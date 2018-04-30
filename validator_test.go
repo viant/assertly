@@ -209,6 +209,26 @@ func TestAssertMap(t *testing.T) {
 			},
 			HasError: true,
 		},
+		{
+			Description: "sortText use case",
+			Expected: []interface{}{
+				map[string]interface{} {
+					"@sortText@":true,
+				},
+				"z523",
+				"abc",
+				"ax5",
+			},
+			Actual: []interface{}{
+				"ax5",
+				"z523",
+				"abc",
+			},
+			HasError: false,
+			PassedCount:3,
+			FailedCount:0,
+
+		},
 	}
 	runUseCases(t, useCases)
 }
