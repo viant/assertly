@@ -584,6 +584,71 @@ func TestAssertSwitchCase(t *testing.T) {
 `,
 			HasError: true,
 		},
+
+		{
+			Description: "switch/case with shared values test",
+			PassedCount:2,
+			FailedCount:1,
+			Expected: `[
+  {
+    "@switchCaseBy@": "algid",
+    "1": {
+      "algid": 1,
+      "t": "640,650,750,753"
+    },
+    "2": {
+      "algid": 2,
+      "t": "640,650,750,753"
+    },
+	"shared": {
+    	"d": 2	
+	}
+  }
+  
+]`,
+
+			Actual: `[
+  {
+    "algid": 1,
+    "t": "640,650,750,753",
+    "d": 1
+  }
+
+]`,
+		},
+
+		{
+			Description: "switch/case with shared values test",
+			PassedCount:3,
+			Expected: `[
+  {
+    "@switchCaseBy@": "algid",
+    "1": {
+      "algid": 1,
+      "t": "640,650,750,753"
+    },
+    "2": {
+      "algid": 2,
+      "t": "640,650,750,753"
+    },
+	"shared": {
+    	"d": 2	
+	}
+  }
+  
+]`,
+
+			Actual: `[
+  {
+    "algid": 1,
+    "t": "640,650,750,753",
+    "d": 2
+  }
+
+]`,
+		},
+
+
 	}
 	runUseCases(t, useCases)
 
@@ -831,7 +896,10 @@ func runUseCases(t *testing.T, useCases []*assertUseCase) {
 		}
 
 		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, useCase.Description)
-		assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, useCase.Description)
+		if ! assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, useCase.Description) {
+			//	fmt.Printf(validation.Report())
+		}
+
 	}
 }
 

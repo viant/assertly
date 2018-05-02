@@ -28,9 +28,9 @@ const (
 	ContainsViolation             = "should contain fragment"
 	DoesNotContainViolation       = "should not contain fragment"
 	PredicateViolation            = "should pass predicate"
-	ValueWasNil           		  = "should have not nil"
+	ValueWasNil                   = "should have not nil"
+	SharedSwitchCaseKey           = "shared"
 )
-
 
 //Assert validates expected against actual data structure for supplied path
 func Assert(expected, actual interface{}, path DataPath) (*Validation, error) {
@@ -38,15 +38,12 @@ func Assert(expected, actual interface{}, path DataPath) (*Validation, error) {
 	return AssertWithContext(expected, actual, path, context)
 }
 
-
 func handleFailure(t *testing.T, args ... interface{}) {
-		file, method, line := toolbox.DiscoverCaller(2, 10, "assert.go", "stack_helper.go", "validator.go")
-		_, file = path.Split(file)
-		fmt.Printf("%v:%v (%v)\n%v\n", file, line, method, fmt.Sprint(args))
-		t.Fail()
+	file, method, line := toolbox.DiscoverCaller(2, 10, "assert.go", "stack_helper.go", "validator.go")
+	_, file = path.Split(file)
+	fmt.Printf("%v:%v (%v)\n%v\n", file, line, method, fmt.Sprint(args))
+	t.Fail()
 }
-
-
 
 //AssertWithContext validates expected against actual data structure for supplied path and context
 func AssertWithContext(expected, actual interface{}, path DataPath, context *Context) (*Validation, error) {
@@ -96,7 +93,6 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 	return nil
 }
 
-
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
 	if expected == nil {
 		if actual == nil {
@@ -128,14 +124,13 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	}
 	dateLayout := path.Match(context).DefaultTimeLayout()
 
-
 	if toolbox.IsTime(expected) {
 		expectedTime, _ := toolbox.ToTime(expected, dateLayout)
 		return assertTime(expectedTime, actual, path, context, validation)
-	} else if toolbox.IsStruct(expected) || (actual != nil &&  toolbox.IsStruct(actual))  {
+	} else if toolbox.IsStruct(expected) || (actual != nil && toolbox.IsStruct(actual)) {
 		var converter = toolbox.NewColumnConverter(dateLayout)
 		if toolbox.IsStruct(expected) {
-			var expectedMap= make(map[string]interface{})
+			var expectedMap = make(map[string]interface{})
 			converter.AssignConverted(&expectedMap, expected)
 			expected = expectedMap
 		}
@@ -326,7 +321,14 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		if !toolbox.IsMap(caseValue) {
 			return fmt.Errorf("case value should be map but was %T, path: %v", caseValue, path.Path())
 		}
-		expected = toolbox.AsMap(caseValue)
+
+		caseValueMap := toolbox.AsMap(caseValue)
+		if shared, ok := expected[SharedSwitchCaseKey]; ok && toolbox.IsMap(shared) {
+			for k, v := range toolbox.AsMap(shared) {
+				caseValueMap[k] = v
+			}
+		}
+		expected = caseValueMap
 	}
 
 	if err := directive.Apply(expected); err != nil {
@@ -416,16 +418,14 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 	}
 	directive := path.Match(context)
 
-
 	if toolbox.IsMap(expected[0]) {
 		first := toolbox.AsMap(expected[0])
 		if directive.ExtractDirectives(first) {
 			expected = expected[1:]
 		}
 
-
 		if directive.SortText {
-			var expectedSlice  = []string{}
+			var expectedSlice = []string{}
 			toolbox.ProcessSlice(expected, func(item interface{}) bool {
 				expectedSlice = append(expectedSlice, toolbox.AsString(item))
 				return true
@@ -437,13 +437,13 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 			})
 
 			sort.Strings(expectedSlice)
-			expected  = []interface{}{}
+			expected = []interface{}{}
 			for _, item := range expectedSlice {
 				expected = append(expected, item)
 			}
 
-   			sort.Strings(actualSlice)
-			actual  = []interface{}{}
+			sort.Strings(actualSlice)
+			actual = []interface{}{}
 			for _, item := range actualSlice {
 				actual = append(actual, item)
 			}
@@ -456,13 +456,13 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 			}
 
 			for i := 0; i < len(actual); i++ {
-				var actualMap= toolbox.AsMap(actual[i])
+				var actualMap = toolbox.AsMap(actual[i])
 				directive.ExtractDataTypes(actualMap)
 			}
 
 			//add directive to expected
 			for i := 0; i < len(expected); i++ {
-				var expectedMap= toolbox.AsMap(expected[i])
+				var expectedMap = toolbox.AsMap(expected[i])
 				directive.Add(expectedMap)
 				directive.Apply(expectedMap)
 			}
