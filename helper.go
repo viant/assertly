@@ -3,6 +3,7 @@ package assertly
 import (
 	"github.com/viant/toolbox"
 	"strings"
+	"github.com/viant/toolbox/data"
 )
 
 func asDataStructure(candidate string) interface{} {
@@ -71,10 +72,10 @@ func mergeBoolMap(source map[string]bool, target *map[string]bool) {
 	}
 }
 
-func keysValue(aMap map[string]interface{}, keys ...string) string {
+func keysValue(aMap data.Map, keys ...string) string {
 	var result = ""
 	for _, key := range keys {
-		value, ok := aMap[key]
+		value, ok := aMap.GetValue(key)
 		if ! ok {
 			value = ""
 		}
