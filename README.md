@@ -182,6 +182,8 @@ Directive is an instruction provide validator with transformation or validation 
 2) A map with a actual array/slice/collection that can be ordered by unique fields
 
 
+
+
 **Example 1**
 
 
@@ -220,13 +222,31 @@ Directive is an instruction provide validator with transformation or validation 
 ```
 
 
+
+
+**Example 3**
+
+\#expected
+```json
+{"@indexBy@":"request.id"}
+{"request:"{"id":1111, "name":"name1"}, "ts":189321233}
+{"request:"{"id":2222, "name":"name2"}, "ts":189321235}
+```
+	
+\#actual
+```json
+{"request:"{"id":2222, "name":"name2"}, "ts":189321235}
+{"request:"{"id":1111, "name":"name1"}, "ts":189321233}
+```
+
+
 ## Switch/case 
 
 **@switchCaseBy@** - switch directive instructs a validator to select matching expected subset based on some actual value.
 .
 For non deterministic system there could be various alternative output for the same input.
 
-**Example**
+**Example 1**
 
 \#expected 
  ```json
@@ -252,14 +272,39 @@ For non deterministic system there could be various alternative output for the s
 ```
 
 
+**Example 2**
+
+\#expected 
+ ```json
+ [
+   {
+     "@switchCaseBy@":["experimentID"]
+   },
+   {
+     "1":{"experimentID":1, "seq":1, "outcome":[1.53,7.42,6.34]},
+     "2":{"experimentID":2, "seq":1, "outcome":[3.53,6.32,3.34]},
+     "shared": {"k1":"v1", "k2":"v2"}
+   },
+   {
+     "1":{"experimentID":1, "seq":2, "outcome":[5.63,4.3]},
+     "2":{"experimentID":1, "seq":2, "outcome":[3.65,3.2]},
+     "shared": {"k1":"v10", "k2":"v20"}
+   }
+ ]
+```
+
+\#actual
+```json
+{"experimentID":1, "seq":1, "outcome":[1.53,7.42,6.34], "k1":"v1", "k2":"v2"}
+{"experimentID":1, "seq":2, "outcome":[5.63,4.3], "k1":"v10", "k2":"v20"}
+```
+
+
 ## Time format
 
 @timeFormat@ - time format directive instructs a validator to convert data into time with specified time format  before actual validation takes place.
 
 Time format is expressed in java style date format.
-
-
-
 
 **Example**
 
