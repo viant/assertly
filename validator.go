@@ -345,7 +345,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 			continue
 		}
 		var keyPath DataPath
-		if indexable {
+		if indexable && toolbox.IsMap(expectedValue) {
 			keyPath = path.Key(keysPairValue(toolbox.AsMap(expectedValue), directive.IndexBy...))
 		} else {
 			keyPath = path.Key(expectedKey)
@@ -375,8 +375,13 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 			validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), MissingEntryViolation, expectedValue, toolbox.MapKeysToStringSlice(actual), key))
 			continue
 		}
+		var failed = validation.FailedCount
 		if err := assertValue(expectedValue, actualValue, keyPath, context, validation); err != nil {
 			return err
+		}
+		if failed != validation.FailedCount {
+			fmt.Printf("Failed keyPath: %v,  %v, e: %T %v, a: %T %v\n", keyPath.Path(), expectedKey, expectedValue,expectedValue, actualValue, actualValue)
+
 		}
 	}
 	return nil

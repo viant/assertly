@@ -1218,3 +1218,4 @@ func TestAssertStructureWithSource(t *testing.T) {
 	runUseCasesWithContext(t, useCases, context)
 
 }
+

@@ -47,7 +47,6 @@ func (d *Directive) mergeFrom(source *Directive) {
 	}
 }
 
-
 //AddKeyExists adds key exists directive
 func (d *Directive) AddSort(key string) {
 	if key == SortTextDirective {
@@ -97,9 +96,11 @@ func (d *Directive) ExtractDataTypes(aMap map[string]interface{}) {
 		} else if toolbox.IsBool(v) {
 			d.AddDataType(k, "bool")
 		} else if toolbox.IsTime(v) {
-			var dateFormat = "yyyy-MM-dd HH:mm:ss.SSSZ"
-			layout := toolbox.DateFormatToLayout(dateFormat)
-			d.AddTimeLayout(k, layout)
+			if _, has := d.TimeLayouts[k]; !has && d.TimeLayout == "" {
+				var dateFormat = "yyyy-MM-dd HH:mm:ss.SSSZ"
+				layout := toolbox.DateFormatToLayout(dateFormat)
+				d.AddTimeLayout(k, layout)
+			}
 		}
 	}
 }
@@ -156,7 +157,6 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 			directiveCount++
 		}
 
-
 		if k == SwitchByDirective {
 			d.SwitchBy = toStringSlice(v)
 			continue
@@ -180,8 +180,6 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 			d.CaseSensitive = toolbox.AsBoolean(v)
 			continue
 		}
-
-
 
 		if k == SourceDirective {
 			d.Source = toolbox.AsString(v)
