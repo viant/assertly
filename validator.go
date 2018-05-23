@@ -82,7 +82,7 @@ func expandExpectedText(text string, path DataPath, context *Context) (interface
 func assertTime(expected *time.Time, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
 	dateLayout := path.Match(context).DefaultTimeLayout()
 	expectedTime, _ := toolbox.ToTime(expected, dateLayout)
-	if actualTime, err := toolbox.ToTime(actual, dateLayout); err == nil {
+	if actualTime, err := toolbox.ToTime(actual, dateLayout); err == nil && expectedTime != nil {
 		actual = actualTime
 		if expectedTime.Equal(*actualTime) {
 			validation.PassedCount++
@@ -124,9 +124,10 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	}
 	dateLayout := path.Match(context).DefaultTimeLayout()
 
-	if toolbox.IsTime(expected) {
+	if toolbox.IsTime(expected) || toolbox.IsTime(actual) {
 		expectedTime, _ := toolbox.ToTime(expected, dateLayout)
 		return assertTime(expectedTime, actual, path, context, validation)
+
 	} else if toolbox.IsStruct(expected) || (actual != nil && toolbox.IsStruct(actual)) {
 		var converter = toolbox.NewColumnConverter(dateLayout)
 		if toolbox.IsStruct(expected) {
@@ -152,8 +153,15 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	expectedText := toolbox.AsString(expected)
 
 	if ! context.StrictDatTypeCheck {
-		if expectedTime, err := toolbox.ToTime(expectedText, directive.DefaultTimeLayout()); err == nil && expectedTime != nil {
-			if actualTime, err := toolbox.ToTime(actual, directive.DefaultTimeLayout()); err == nil {
+		expectedTime, err := toolbox.ToTime(expectedText, directive.DefaultTimeLayout())
+		actualTime, e := toolbox.ToTime(actual, directive.DefaultTimeLayout())
+		if e == nil || err == nil {
+			if expectedTime == nil {
+				if strings.HasPrefix(actualTime.String(), expectedText) {
+					validation.PassedCount++
+					return nil
+				}
+			} else {
 				if actualTime.Equal(*expectedTime) {
 					validation.PassedCount++
 					return nil
@@ -375,13 +383,8 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 			validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), MissingEntryViolation, expectedValue, toolbox.MapKeysToStringSlice(actual), key))
 			continue
 		}
-		var failed = validation.FailedCount
 		if err := assertValue(expectedValue, actualValue, keyPath, context, validation); err != nil {
 			return err
-		}
-		if failed != validation.FailedCount {
-			fmt.Printf("Failed keyPath: %v,  %v, e: %T %v, a: %T %v\n", keyPath.Path(), expectedKey, expectedValue,expectedValue, actualValue, actualValue)
-
 		}
 	}
 	return nil

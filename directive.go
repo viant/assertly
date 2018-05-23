@@ -96,7 +96,7 @@ func (d *Directive) ExtractDataTypes(aMap map[string]interface{}) {
 		} else if toolbox.IsBool(v) {
 			d.AddDataType(k, "bool")
 		} else if toolbox.IsTime(v) {
-			if _, has := d.TimeLayouts[k]; !has && d.TimeLayout == "" {
+			if _, has := d.TimeLayouts[k]; !has {
 				var dateFormat = "yyyy-MM-dd HH:mm:ss.SSSZ"
 				layout := toolbox.DateFormatToLayout(dateFormat)
 				d.AddTimeLayout(k, layout)
