@@ -275,6 +275,11 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 			continue
 		}
 
+		if text, ok:=val.(string);ok {
+			if strings.HasPrefix(text, "!") || strings.HasPrefix(text, "/") || strings.HasPrefix(text, "~") {
+				continue
+			}
+		}
 		switch dataType {
 		case "float":
 			casted, err = toolbox.ToFloat(val)

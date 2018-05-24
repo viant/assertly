@@ -161,7 +161,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 					validation.PassedCount++
 					return nil
 				}
-			} else {
+			} else if actualTime != nil {
 				if actualTime.Equal(*expectedTime) {
 					validation.PassedCount++
 					return nil
