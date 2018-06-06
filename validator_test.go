@@ -180,7 +180,7 @@ func TestAssertMap(t *testing.T) {
 				"k2":                                  2.0,
 			},
 			Actual:   map[string]interface{}{},
-			HasError: true,
+			FailedCount:1,
 		},
 
 		{
@@ -195,7 +195,7 @@ func TestAssertMap(t *testing.T) {
 			Actual: map[string]interface{}{
 				"k2": "2019-01-01",
 			},
-			HasError:    false,
+
 			PassedCount: 1,
 		},
 		{
@@ -207,7 +207,7 @@ func TestAssertMap(t *testing.T) {
 			Actual: map[string]interface{}{
 				"k2": "99-99-99",
 			},
-			HasError: true,
+			FailedCount:1,
 		},
 		{
 			Description: "sortText use case",
@@ -396,7 +396,9 @@ func TestAssertSlice(t *testing.T) {
 					"x":   200,
 					"y":   300,
 				},
+
 			},
+
 			Actual: []map[string]interface{}{
 				{
 					"key": 2,
@@ -409,8 +411,8 @@ func TestAssertSlice(t *testing.T) {
 					"y":   200,
 				},
 			},
-			PassedCount: 3,
-			HasError:    true,
+			PassedCount: 5,
+			FailedCount:1,
 		},
 
 		{
@@ -430,8 +432,9 @@ func TestAssertSlice(t *testing.T) {
 					"y":   200,
 				},
 			},
-			PassedCount: 3,
-			HasError:    true,
+			PassedCount: 2,
+			FailedCount:1,
+
 		},
 	}
 	runUseCases(t, useCases)
@@ -890,13 +893,12 @@ func runUseCases(t *testing.T, useCases []*assertUseCase) {
 			assert.Nil(t, err, useCase.Description)
 			continue
 		} else if useCase.HasError {
-
 			assert.NotNil(t, err, useCase.Description)
 			continue
 		}
 
-		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, useCase.Description)
-		if ! assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, useCase.Description) {
+		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, "Passed count " + useCase.Description)
+		if ! assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, "Failed count " +  useCase.Description) {
 			//	fmt.Printf(validation.Report())
 		}
 
