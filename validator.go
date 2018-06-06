@@ -10,6 +10,7 @@ import (
 	"testing"
 	"path"
 	"sort"
+	"log"
 )
 
 const (
@@ -316,7 +317,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	}
 	directive.ExtractDataTypes(actual)
 	if err := directive.Apply(actual); err != nil {
-		return fmt.Errorf("failed to apply directive to actual, path:%v, %v", path.Path(), err)
+		log.Print(err.Error())
 	}
 
 	if len(directive.SwitchBy) > 0 {
@@ -340,7 +341,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	}
 
 	if err := directive.Apply(expected); err != nil {
-		return fmt.Errorf("failed to apply directive to expected, path:%v %v", path.Path(), err)
+		log.Print(err.Error())
 	}
 
 	indexable := isIndexable(expected)
@@ -473,7 +474,13 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 				var expectedMap = toolbox.AsMap(expected[i])
 				directive.Add(expectedMap)
 				directive.Apply(expectedMap)
+				if i < len(actual) {
+					actualMap := toolbox.AsMap(actual[i])
+					directive.Apply(actualMap)
+				}
 			}
+
+
 			shouldIndex := len(directive.IndexBy) > 0
 			if shouldIndex {
 				expectedMap := indexSliceBy(expected, directive.IndexBy...)
