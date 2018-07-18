@@ -229,14 +229,14 @@ Directive is an instruction provide validator with transformation or validation 
 \#expected
 ```json
 {"@indexBy@":"request.id"}
-{"request:{"id":1111, "name":"name1"}, "ts":189321233}
-{"request:{"id":2222, "name":"name2"}, "ts":189321235}
+{"request":{"id":1111, "name":"name1"}, "ts":189321233}
+{"request":{"id":2222, "name":"name2"}, "ts":189321235}
 ```
 	
 \#actual
 ```json
-{"request:"{"id":2222, "name":"name2"}, "ts":189321235}
-{"request:"{"id":1111, "name":"name1"}, "ts":189321233}
+{"request":{"id":2222, "name":"name2"}, "ts":189321235}
+{"request":{"id":1111, "name":"name1"}, "ts":189321233}
 ```
 
 
