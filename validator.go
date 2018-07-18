@@ -212,6 +212,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 	actual = strings.TrimSpace(actual)
 	expected = string(expected[2: len(expected)-2])
 	var rangeValues = strings.Split(expected, "..")
+
 	var withinRange bool
 	if len(rangeValues) > 1 {
 		var minExpected = toolbox.AsFloat(strings.TrimSpace(rangeValues[0]))

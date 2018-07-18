@@ -161,17 +161,16 @@ var actual = `
 
 <a name="Directive"></a>
 ## Directive
-Directive is an instruction provide validator with transformation or validation rules.
+Directive is pieco of information instructing validator to either convert data just before validation takes place or to validate a date accoring to provided rules. 
 
 	KeyExistsDirective        = "@exists@"
 	KeyDoesNotExistsDirective = "@!exists@"
 	TimeFormatDirective       = "@timeFormat@"
+	TimeLayoutDirective       = "@timeLayout@"
 	SwitchByDirective         = "@switchCaseBy@"
 	CastDataTypeDirective     = "@cast@"
 	IndexByDirective          = "@indexBy@"
     CaseSensitiveDirective    =  @caseSensitive@
-	SourceDirective           = "@source@"
-	SourceTextDirective       = "@sortText@"
 
 
 ### Index by
@@ -340,8 +339,6 @@ expected := map[string]interface{}{
 @timeLayout@ - time format directive instructs a validator to convert data into time with specified time format  before actual validation takes place.
 
 Time layout uses golang time layout.
-
-
 
 
 **Example**
