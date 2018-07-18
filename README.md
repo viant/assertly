@@ -87,7 +87,7 @@ Validation rules:
 6) Directive and macros/predicate provide validation extension
 7) The following expression can be used on any data structure level:
 
-| Validation Type |  input | expected expression | example | 
+| Assertion Type |  input | expected expression | example | 
 | --- | --- | --- | --- | 
 | Equal |  actual | expected | a:a |
 | Not Equal |  actual | !expected | a:!b |
@@ -229,8 +229,8 @@ Directive is an instruction provide validator with transformation or validation 
 \#expected
 ```json
 {"@indexBy@":"request.id"}
-{"request:"{"id":1111, "name":"name1"}, "ts":189321233}
-{"request:"{"id":2222, "name":"name2"}, "ts":189321235}
+{"request:{"id":1111, "name":"name1"}, "ts":189321233}
+{"request:{"id":2222, "name":"name2"}, "ts":189321235}
 ```
 	
 \#actual
@@ -386,7 +386,7 @@ Supported data type casting:
  ```json
  [
    {
-     "@case@field1":"float","@case@field2":"int"
+     "@cast@field1":"float","@cast@field2":"int"
    },
    {
         "field1":2.3,
