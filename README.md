@@ -89,13 +89,13 @@ Validation rules:
 
 | Assertion Type |  input | expected expression | example | 
 | --- | --- | --- | --- | 
-| Equal |  actual | expected | a:a |
-| Not Equal |  actual | !expected | a:!b |
-| Contains | actual | /expected/| abcd:/bc/|
-| Not Contains | actual | !/expected/| abcd:!/xc/ |
-| RegExpr | actual | ~/expected/ | 1234a:/\d+/ |
-| Not RegExpr | actual | !~/expected/ | 1234:!/\w/ |
-| Between | actual | /[minExpected..maxExpected]/ | 12:/[1..13]/ |
+| equal |  actual | expected | a:a |
+| not equal |  actual | !expected | a:!b |
+| contains | actual | /expected/| abcd:/bc/|
+| not contains | actual | !/expected/| abcd:!/xc/ |
+| regExpr | actual | ~/expected/ | 1234a:/\d+/ |
+| not regExpr | actual | !~/expected/ | 1234:!/\w/ |
+| between | actual | /[minExpected..maxExpected]/ | 12:/[1..13]/ |
 | exists | n/a | { "key": "@exists@" } | |
 | not exists | n/a | { "key": "@!exists@" } | |
 
