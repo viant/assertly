@@ -161,8 +161,7 @@ var actual = `
 
 <a name="Directive"></a>
 ## Directive
-Directive is piece of information instructing validator to either convert data just before validation takes place or to validate a date accoring to provided rules. 
-
+Directive is piece of information instructing validator to either convert data just before validation takes place or to validate a date according to provided rules. 
 	KeyExistsDirective        = "@exists@"
 	KeyDoesNotExistsDirective = "@!exists@"
 	TimeFormatDirective       = "@timeFormat@"
