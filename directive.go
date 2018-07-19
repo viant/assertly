@@ -19,7 +19,7 @@ const (
 	SortTextDirective         = "@sortText@"
 )
 
-//Match represents a validation directive
+//Match represents a validation TestDirective
 type Directive struct {
 	DataPath
 	KeyExists       map[string]bool
@@ -47,14 +47,14 @@ func (d *Directive) mergeFrom(source *Directive) {
 	}
 }
 
-//AddKeyExists adds key exists directive
+//AddKeyExists adds key exists TestDirective
 func (d *Directive) AddSort(key string) {
 	if key == SortTextDirective {
 		d.SortText = true
 	}
 }
 
-//AddKeyExists adds key exists directive
+//AddKeyExists adds key exists TestDirective
 func (d *Directive) AddKeyExists(key string) {
 	if len(d.KeyExists) == 0 {
 		d.KeyExists = make(map[string]bool)
@@ -62,7 +62,7 @@ func (d *Directive) AddKeyExists(key string) {
 	d.KeyExists[key] = true
 }
 
-//AddKeyDoesNotExist adds key does exist directive
+//AddKeyDoesNotExist adds key does exist TestDirective
 func (d *Directive) AddKeyDoesNotExist(key string) {
 	if len(d.KeyDoesNotExist) == 0 {
 		d.KeyDoesNotExist = make(map[string]bool)
@@ -70,7 +70,7 @@ func (d *Directive) AddKeyDoesNotExist(key string) {
 	d.KeyDoesNotExist[key] = true
 }
 
-//AddTimeLayout adds time layout directive
+//AddTimeLayout adds time layout TestDirective
 func (d *Directive) AddTimeLayout(key, value string) {
 	if len(d.TimeLayouts) == 0 {
 		d.TimeLayouts = make(map[string]string)
@@ -78,7 +78,7 @@ func (d *Directive) AddTimeLayout(key, value string) {
 	d.TimeLayouts[key] = value
 }
 
-//AddDataType adds data type directive
+//AddDataType adds data type TestDirective
 func (d *Directive) AddDataType(key, value string) {
 	if len(d.DataType) == 0 {
 		d.DataType = make(map[string]string)
@@ -148,7 +148,7 @@ func (d *Directive) Add(target map[string]interface{}) {
 	}
 }
 
-//ExtractDirective extract directive from supplied map
+//ExtractDirective extract TestDirective from supplied map
 func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 	var keyCount = len(aMap)
 	var directiveCount = 0
@@ -221,7 +221,7 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 	return keyCount > 0 && keyCount == directiveCount
 }
 
-//Apply applies directive to supplied map
+//Apply applies TestDirective to supplied map
 func (d *Directive) Apply(aMap map[string]interface{}) error {
 	if err := d.applyTimeFormat(aMap); err != nil {
 		return err
@@ -275,7 +275,7 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 			continue
 		}
 
-		if text, ok:=val.(string);ok {
+		if text, ok := val.(string); ok {
 			if strings.HasPrefix(text, "!") || strings.HasPrefix(text, "/") || strings.HasPrefix(text, "~") {
 				continue
 			}
@@ -300,18 +300,18 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 	return nil
 }
 
-//IsDirectiveKey returns true if key is directive
+//IsDirectiveKey returns true if key is TestDirective
 func (d *Directive) IsDirectiveKey(key string) bool {
 	return strings.HasPrefix(key, "@") && strings.Count(key, "@") > 1
 }
 
-//IsDirectiveKey returns true if value is directive
+//IsDirectiveKey returns true if value is TestDirective
 func (d *Directive) IsDirectiveValue(value string) bool {
 	return value == KeyExistsDirective ||
 		value == KeyDoesNotExistsDirective
 }
 
-//NewDirective creates a new directive for supplied path
+//NewDirective creates a new TestDirective for supplied path
 func NewDirective(dataPath DataPath) *Directive {
 	var result = &Directive{
 		DataPath:      dataPath,
@@ -330,4 +330,58 @@ func NewDirective(dataPath DataPath) *Directive {
 	})
 
 	return result
+}
+
+
+
+
+//TestDirective represents TestDirective record
+type TestDirective map[string]interface{}
+
+func (r TestDirective) IndexBy(key string) TestDirective {
+	r[IndexByDirective] = key
+	return r
+}
+
+func IndexBy(key string) TestDirective {
+	var result = TestDirective{}
+	return result.IndexBy(key)
+}
+
+func (r TestDirective) TimeFormat(key, format string) TestDirective {
+	r[TimeFormatDirective+key] = format
+	return r
+}
+
+func TimeFormat(key, format string) TestDirective {
+	var result = TestDirective{}
+	return result.TimeFormat(key, format)
+}
+
+func (r TestDirective) TimeLayout(key, format string) TestDirective {
+	r[TimeLayoutDirective+key] = format
+	return r
+}
+
+func TimeLayout(key, format string) TestDirective {
+	var result = TestDirective{}
+	return result.TimeLayout(key, format)
+}
+
+
+func (r TestDirective) CaseSensitive() TestDirective {
+	r[CaseSensitiveDirective ] = true
+	return r
+}
+
+
+
+func (r TestDirective) Cast(field, dataType string) TestDirective {
+	r[CastDataTypeDirective+field ] = dataType
+	return r
+}
+
+func (r TestDirective) SortText() TestDirective {
+	r[SortTextDirective ] = true
+	return r
 }
