@@ -2,8 +2,8 @@ package assertly
 
 import (
 	"github.com/viant/toolbox"
-	"strings"
 	"github.com/viant/toolbox/data"
+	"strings"
 )
 
 func asDataStructure(candidate string) interface{} {
@@ -76,7 +76,7 @@ func keysValue(aMap data.Map, keys ...string) string {
 	var result = ""
 	for _, key := range keys {
 		value, ok := aMap.GetValue(key)
-		if ! ok {
+		if !ok {
 			value = ""
 		}
 		result += toolbox.AsString(value)

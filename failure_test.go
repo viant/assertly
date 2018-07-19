@@ -1,49 +1,48 @@
 package assertly
 
 import (
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestFailure_Index(t *testing.T) {
 
 	{
-		var failure = NewFailure("","[/]:ad[12].we", "", nil, nil)
+		var failure = NewFailure("", "[/]:ad[12].we", "", nil, nil)
 		assert.EqualValues(t, 12, failure.Index())
 	}
 	{
-		var failure = NewFailure("","ad[12].we", "", nil, nil)
+		var failure = NewFailure("", "ad[12].we", "", nil, nil)
 		assert.EqualValues(t, -1, failure.Index())
 	}
 	{
-		var failure = NewFailure("",":ad[a].we", "", nil, nil)
+		var failure = NewFailure("", ":ad[a].we", "", nil, nil)
 		assert.EqualValues(t, -1, failure.Index())
 	}
 	{
-		var failure = NewFailure("",":ad[].we", "", nil, nil)
+		var failure = NewFailure("", ":ad[].we", "", nil, nil)
 		assert.EqualValues(t, -1, failure.Index())
 	}
 }
 
 func TestFailure_LeafKey(t *testing.T) {
 	{
-		var failure = NewFailure("","[/]:ad[12].we", "", nil, nil)
+		var failure = NewFailure("", "[/]:ad[12].we", "", nil, nil)
 		assert.EqualValues(t, "we", failure.LeafKey())
 	}
 	{
-		var failure = NewFailure("","[/]:ad[12].", "", nil, nil)
+		var failure = NewFailure("", "[/]:ad[12].", "", nil, nil)
 		assert.EqualValues(t, "", failure.LeafKey())
 	}
 	{
-		var failure = NewFailure("","[/]:ad[12]", "", nil, nil)
+		var failure = NewFailure("", "[/]:ad[12]", "", nil, nil)
 		assert.EqualValues(t, "", failure.LeafKey())
 	}
 
 }
 
-
 func TestFailure_MergeFrom(t *testing.T) {
-	var failure = NewFailure("","[/]:ad[12].we", "", nil, nil)
+	var failure = NewFailure("", "[/]:ad[12].we", "", nil, nil)
 	source := NewValidation()
 	source.PassedCount = 2
 	source.AddFailure(failure)

@@ -1,9 +1,9 @@
 package assertly
 
 import (
-	"strings"
-	"github.com/viant/toolbox"
 	"fmt"
+	"github.com/viant/toolbox"
+	"strings"
 	"unicode"
 )
 
@@ -48,18 +48,13 @@ outer:
 	return toolbox.AsInt(index)
 }
 
-
-
 func (f *Failure) LeafKey() string {
-	leafIndex:= strings.LastIndex(f.Path, ".")
+	leafIndex := strings.LastIndex(f.Path, ".")
 	if leafIndex == -1 {
 		return ""
 	}
 	return string(f.Path[leafIndex+1:])
 }
-
-
-
 
 func removeDirectives(aMap map[string]interface{}) map[string]interface{} {
 	var result = make(map[string]interface{})
@@ -93,7 +88,6 @@ func NewFailure(source, path string, reason string, expected, actual interface{}
 	result.Message = FormatMessage(result)
 	return result
 }
-
 
 func FormatMessage(failure *Failure) string {
 	switch failure.Reason {
@@ -134,4 +128,3 @@ func FormatMessage(failure *Failure) string {
 	}
 	return failure.Reason
 }
-

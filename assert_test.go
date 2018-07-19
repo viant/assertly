@@ -3,7 +3,7 @@ package assertly
 import "testing"
 
 func Test_AssertValues(t *testing.T) {
-	var  actual = `[
+	var actual = `[
 	{
 		"id": 1,
 		"name": "user 1",

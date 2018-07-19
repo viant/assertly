@@ -7,12 +7,10 @@ import (
 //Context represent validation context
 type Context struct {
 	toolbox.Context
-	Directives *Directives
-	Evaluator  *toolbox.MacroEvaluator
+	Directives         *Directives
+	Evaluator          *toolbox.MacroEvaluator
 	StrictDatTypeCheck bool
 }
-
-
 
 //NewContext returns a context
 func NewContext(ctx toolbox.Context, directives *Directives, evaluator *toolbox.MacroEvaluator) *Context {
@@ -32,12 +30,10 @@ func NewContext(ctx toolbox.Context, directives *Directives, evaluator *toolbox.
 	}
 }
 
-
 //NewDefaultContext returns default context
 func NewDefaultContext() *Context {
 	return NewContext(nil, nil, nil)
 }
-
 
 func NewDefaultMacroEvaluator() *toolbox.MacroEvaluator {
 	return toolbox.NewMacroEvaluator("<ds:", ">", ValueProviderRegistry)

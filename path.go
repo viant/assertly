@@ -28,7 +28,6 @@ type DataPath interface {
 	//Match returns a matched directive for this path
 	Match(context *Context) *Directive
 
-
 	//Match returns a directive for this path
 	Directive() *Directive
 
@@ -59,11 +58,9 @@ func (p *dataPath) Key(field string) DataPath {
 	}
 }
 
-
-func (p *dataPath) SetSource(source string)  {
-	p.source = source;
+func (p *dataPath) SetSource(source string) {
+	p.source = source
 }
-
 
 func (p *dataPath) Source() string {
 	if p.source != "" {
@@ -80,11 +77,9 @@ func (p *dataPath) Source() string {
 	return result
 }
 
-
 func (p *dataPath) Directive() *Directive {
 	return p.directive
 }
-
 
 func (p *dataPath) Match(context *Context) *Directive {
 	if p.directive != nil {
@@ -104,7 +99,6 @@ func (p *dataPath) Match(context *Context) *Directive {
 	return directive
 }
 
-
 func (p *dataPath) Each(callback func(path DataPath) bool) {
 	var node = p
 	for node != nil {
@@ -114,7 +108,6 @@ func (p *dataPath) Each(callback func(path DataPath) bool) {
 		node = node.parent
 	}
 }
-
 
 func (p *dataPath) each(callback func(path *dataPath) bool) {
 	var node = p

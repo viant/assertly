@@ -5,7 +5,6 @@ import (
 	"strings"
 )
 
-
 //Validation validation
 type Validation struct {
 	TagID       string
@@ -41,7 +40,7 @@ func (v *Validation) MergeFrom(source *Validation) {
 func (v *Validation) Report() string {
 	var result = make([]string, 0)
 	for _, failure := range v.Failures {
-		result = append(result,  failure.Path + ": " +  failure.Message)
+		result = append(result, failure.Path+": "+failure.Message)
 	}
 	result = append(result, fmt.Sprintf("Passed: %v", v.PassedCount))
 	result = append(result, fmt.Sprintf("Failed: %v", v.FailedCount))

@@ -332,9 +332,6 @@ func NewDirective(dataPath DataPath) *Directive {
 	return result
 }
 
-
-
-
 //TestDirective represents TestDirective record
 type TestDirective map[string]interface{}
 
@@ -368,20 +365,17 @@ func TimeLayout(key, format string) TestDirective {
 	return result.TimeLayout(key, format)
 }
 
-
 func (r TestDirective) CaseSensitive() TestDirective {
-	r[CaseSensitiveDirective ] = true
+	r[CaseSensitiveDirective] = true
 	return r
 }
 
-
-
 func (r TestDirective) Cast(field, dataType string) TestDirective {
-	r[CastDataTypeDirective+field ] = dataType
+	r[CastDataTypeDirective+field] = dataType
 	return r
 }
 
 func (r TestDirective) SortText() TestDirective {
-	r[SortTextDirective ] = true
+	r[SortTextDirective] = true
 	return r
 }

@@ -3,14 +3,14 @@ package assertly
 import (
 	"fmt"
 	"github.com/viant/toolbox"
+	"log"
+	"path"
 	"reflect"
 	"regexp"
-	"strings"
-	"time"
-	"testing"
-	"path"
 	"sort"
-	"log"
+	"strings"
+	"testing"
+	"time"
 )
 
 const (
@@ -39,7 +39,7 @@ func Assert(expected, actual interface{}, path DataPath) (*Validation, error) {
 	return AssertWithContext(expected, actual, path, context)
 }
 
-func handleFailure(t *testing.T, args ... interface{}) {
+func handleFailure(t *testing.T, args ...interface{}) {
 	file, method, line := toolbox.DiscoverCaller(2, 10, "assert.go", "stack_helper.go", "validator.go")
 	_, file = path.Split(file)
 	fmt.Printf("%v:%v (%v)\n%v\n", file, line, method, fmt.Sprint(args))
@@ -64,6 +64,9 @@ func getPredicate(input interface{}) toolbox.Predicate {
 }
 
 func expandExpectedText(text string, path DataPath, context *Context) (interface{}, error) {
+	if toolbox.IsCompleteJSON(text) {
+		return asDataStructure(text), nil
+	}
 	if context.Evaluator.HasMacro(text) {
 		evaluated, err := context.Evaluator.Expand(context.Context, text)
 		if err != nil {
@@ -73,9 +76,6 @@ func expandExpectedText(text string, path DataPath, context *Context) (interface
 			return evaluated, nil
 		}
 		text = toolbox.AsString(evaluated)
-	}
-	if toolbox.IsCompleteJSON(text) {
-		return asDataStructure(text), nil
 	}
 	return text, nil
 }
@@ -94,7 +94,6 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 	return nil
 }
 
-
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
 	if expected == nil {
 		if actual == nil {
@@ -110,19 +109,19 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 			return err
 		}
 	}
-	predicate := getPredicate(expected)
-	if predicate != nil {
-		if !predicate.Apply(actual) {
-			validation.AddFailure(NewFailure(path.Source(), path.Path(), PredicateViolation, predicate, actual))
-		} else {
-			validation.PassedCount++
-		}
-		return nil
-	}
 	if text, ok := actual.(string); ok {
 		if toolbox.IsCompleteJSON(text) {
 			actual = asDataStructure(text)
 		}
+	}
+	predicate := getPredicate(expected)
+	if predicate != nil {
+		if !predicate.Apply(actual) {
+			validation.AddFailure(NewFailure(path.Source(), path.Path(), PredicateViolation, fmt.Sprintf("%T%v", predicate, predicate), actual))
+		} else {
+			validation.PassedCount++
+		}
+		return nil
 	}
 	dateLayout := path.Match(context).DefaultTimeLayout()
 
@@ -154,7 +153,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	directive := NewDirective(path)
 	expectedText := toolbox.AsString(expected)
 
-	if ! context.StrictDatTypeCheck {
+	if !context.StrictDatTypeCheck {
 		expectedTime, err := toolbox.ToTime(expectedText, directive.DefaultTimeLayout())
 		actualTime, e := toolbox.ToTime(actual, directive.DefaultTimeLayout())
 		if e == nil || err == nil {
@@ -174,7 +173,6 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	return assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
 }
 
-
 func isNegated(candidate string) (string, bool) {
 	isNot := strings.HasPrefix(candidate, "!")
 	if isNot {
@@ -184,7 +182,7 @@ func isNegated(candidate string) (string, bool) {
 }
 
 func assertRegExpr(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) error {
-	expected = string(expected[2: len(expected)-1])
+	expected = string(expected[2 : len(expected)-1])
 	useMultiLine := strings.Count(actual, "\n") > 0
 	pattern := ""
 	if useMultiLine {
@@ -212,7 +210,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 		return fmt.Errorf("invalid range format, expected /[min..max]/ or /[val1,val2,valN]/, but had:%v, path: %v", expected, path.Path())
 	}
 	actual = strings.TrimSpace(actual)
-	expected = string(expected[2: len(expected)-2])
+	expected = string(expected[2 : len(expected)-2])
 	var rangeValues = strings.Split(expected, "..")
 
 	var withinRange bool
@@ -241,7 +239,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 }
 
 func assertContains(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) {
-	expected = string(expected[1: len(expected)-1])
+	expected = string(expected[1 : len(expected)-1])
 	contains := strings.Contains(actual, expected)
 
 	if !contains && !isNegated {
@@ -433,7 +431,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 	}
 	directive := path.Match(context)
 
-	if toolbox.IsMap(expected[0]) ||toolbox.IsStruct(expected[0]) {
+	if toolbox.IsMap(expected[0]) || toolbox.IsStruct(expected[0]) {
 		first := toolbox.AsMap(expected[0])
 		if directive.ExtractDirectives(first) {
 			expected = expected[1:]
@@ -465,7 +463,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 
 		} else {
 
-			if ! directive.CaseSensitive {
+			if !directive.CaseSensitive {
 				expected = asCaseInsensitiveSlice(expected)
 				actual = asCaseInsensitiveSlice(actual)
 				directive.ApplyCaseInsensitive()
@@ -488,7 +486,6 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 					actual[i] = actualMap
 				}
 			}
-
 
 			shouldIndex := len(directive.IndexBy) > 0
 			if shouldIndex {

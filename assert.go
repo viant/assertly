@@ -6,7 +6,7 @@ import (
 )
 
 //AssertValues validates expected against actual data structure
-func AssertValues(t *testing.T, expected, actual interface{}, arguments ... interface{}) bool {
+func AssertValues(t *testing.T, expected, actual interface{}, arguments ...interface{}) bool {
 	validation, err := Assert(expected, actual, NewDataPath("/"))
 	if err != nil {
 		if len(arguments) > 0 {
@@ -21,7 +21,7 @@ func AssertValues(t *testing.T, expected, actual interface{}, arguments ... inte
 			handleFailure(t, arguments...)
 		}
 		for _, failure := range validation.Failures {
-			handleFailure(t, fmt.Sprintf("%v: %v" ,failure.Path, failure.Message))
+			handleFailure(t, fmt.Sprintf("%v: %v", failure.Path, failure.Message))
 		}
 		return false
 	}

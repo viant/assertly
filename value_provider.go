@@ -20,5 +20,4 @@ func init() {
 	ValueProviderRegistry.Register("dob", toolbox.NewDateOfBirthrovider())
 	ValueProviderRegistry.Register("cat", toolbox.NewFileValueProvider(true))
 
-
 }

@@ -177,10 +177,10 @@ func TestAssertMap(t *testing.T) {
 			Description: "expected apply error",
 			Expected: map[string]interface{}{
 				assertly.CastDataTypeDirective + "k2": "abc",
-				"k2":                                  2.0,
+				"k2": 2.0,
 			},
-			Actual:   map[string]interface{}{},
-			FailedCount:1,
+			Actual:      map[string]interface{}{},
+			FailedCount: 1,
 		},
 
 		{
@@ -202,18 +202,18 @@ func TestAssertMap(t *testing.T) {
 			Description: "actual error",
 			Expected: map[string]interface{}{
 				assertly.TimeFormatDirective + "k2": "yyyy-MM-dd",
-				"k2":                                "2019-01-01",
+				"k2": "2019-01-01",
 			},
 			Actual: map[string]interface{}{
 				"k2": "99-99-99",
 			},
-			FailedCount:1,
+			FailedCount: 1,
 		},
 		{
 			Description: "sortText use case",
 			Expected: []interface{}{
-				map[string]interface{} {
-					"@sortText@":true,
+				map[string]interface{}{
+					"@sortText@": true,
 				},
 				"z523",
 				"abc",
@@ -224,22 +224,20 @@ func TestAssertMap(t *testing.T) {
 				"z523",
 				"abc",
 			},
-			HasError: false,
-			PassedCount:3,
-			FailedCount:0,
-
+			HasError:    false,
+			PassedCount: 3,
+			FailedCount: 0,
 		},
 	}
 	runUseCases(t, useCases)
 }
-
 
 func TestAssert_CaseInsensitive(t *testing.T) {
 
 	var useCases = []*assertUseCase{
 		{
 			Description: "case sensitive",
-			Expected:    `[
+			Expected: `[
   {
     "@caseSensitive@": false,
     "@indexBy@": [
@@ -265,7 +263,7 @@ func TestAssert_CaseInsensitive(t *testing.T) {
     "username": "Rudi"
   }
 ]`,
-			Actual:      `[
+			Actual: `[
   {
     "ACTIVE": 1,
     "COMMENTS": "dsunit test",
@@ -287,7 +285,6 @@ func TestAssert_CaseInsensitive(t *testing.T) {
 		},
 	}
 	runUseCases(t, useCases)
-
 
 }
 
@@ -396,7 +393,6 @@ func TestAssertSlice(t *testing.T) {
 					"x":   200,
 					"y":   300,
 				},
-
 			},
 
 			Actual: []map[string]interface{}{
@@ -412,16 +408,16 @@ func TestAssertSlice(t *testing.T) {
 				},
 			},
 			PassedCount: 5,
-			FailedCount:1,
+			FailedCount: 1,
 		},
 
 		{
 			Description: "indexed slice cast test",
 			Expected: []map[string]interface{}{
 				{
-					"key":                                1,
-					"x":                                  100,
-					"y":                                  200,
+					"key": 1,
+					"x":   100,
+					"y":   200,
 					assertly.CastDataTypeDirective + "x": "float",
 				},
 			},
@@ -433,8 +429,7 @@ func TestAssertSlice(t *testing.T) {
 				},
 			},
 			PassedCount: 2,
-			FailedCount:1,
-
+			FailedCount: 1,
 		},
 	}
 	runUseCases(t, useCases)
@@ -590,8 +585,8 @@ func TestAssertSwitchCase(t *testing.T) {
 
 		{
 			Description: "switch/case with shared values test",
-			PassedCount:2,
-			FailedCount:1,
+			PassedCount: 2,
+			FailedCount: 1,
 			Expected: `[
   {
     "@switchCaseBy@": "algid",
@@ -622,7 +617,7 @@ func TestAssertSwitchCase(t *testing.T) {
 
 		{
 			Description: "switch/case with shared values test",
-			PassedCount:3,
+			PassedCount: 3,
 			Expected: `[
   {
     "@switchCaseBy@": "algid",
@@ -650,8 +645,6 @@ func TestAssertSwitchCase(t *testing.T) {
 
 ]`,
 		},
-
-
 	}
 	runUseCases(t, useCases)
 
@@ -897,15 +890,15 @@ func runUseCases(t *testing.T, useCases []*assertUseCase) {
 			continue
 		}
 
-		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, "Passed count " + useCase.Description)
-		if ! assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, "Failed count " +  useCase.Description) {
+		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, "Passed count "+useCase.Description)
+		if !assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, "Failed count "+useCase.Description) {
 			//	fmt.Printf(validation.Report())
 		}
 
 	}
 }
 
-func runUseCasesWithContext(t *testing.T, useCases []*assertUseCase, context *assertly.Context){
+func runUseCasesWithContext(t *testing.T, useCases []*assertUseCase, context *assertly.Context) {
 	for _, useCase := range useCases {
 		path := assertly.NewDataPath("/")
 		validation, err := assertly.AssertWithContext(useCase.Expected, useCase.Actual, path, context)
@@ -927,7 +920,6 @@ func runUseCasesWithContext(t *testing.T, useCases []*assertUseCase, context *as
 		}
 	}
 }
-
 
 func TestAssertStructure(t *testing.T) {
 	var useCases = []*assertUseCase{
@@ -1039,11 +1031,7 @@ func TestAssertStructureWithIndexDirective(t *testing.T) {
 			PassedCount: 5,
 			FailedCount: 1,
 		},
-
-
 	}
-
-
 
 	defaultDirective := assertly.NewDirective(assertly.NewDataPath(""))
 	defaultDirective.IndexBy = []string{"id", "seq"}
@@ -1052,10 +1040,8 @@ func TestAssertStructureWithIndexDirective(t *testing.T) {
 
 }
 
-
 func TestAssertMultiIndexBy(t *testing.T) {
 	var useCases = []*assertUseCase{
-
 
 		{
 			Description: "data structure with multi index directive",
@@ -1117,7 +1103,7 @@ func TestAssertMultiIndexBy(t *testing.T) {
     ]
   }
 }`,
-			Actual: 	`{
+			Actual: `{
   "rr": {
     "id": "602b3d53-44f6-11e8-aa2a-5d0983199cde",
     "timestamp": "2018-04-20 23:56:00.109+00",
@@ -1169,16 +1155,12 @@ func TestAssertMultiIndexBy(t *testing.T) {
 			PassedCount: 16,
 			FailedCount: 0,
 		},
-
 	}
-
-
 
 	context := assertly.NewDefaultContext()
 	runUseCasesWithContext(t, useCases, context)
 
 }
-
 
 func TestAssertStructureWithSource(t *testing.T) {
 	var useCases = []*assertUseCase{
@@ -1220,4 +1202,3 @@ func TestAssertStructureWithSource(t *testing.T) {
 	runUseCasesWithContext(t, useCases, context)
 
 }
-
