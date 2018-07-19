@@ -94,6 +94,7 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 	return nil
 }
 
+
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
 	if expected == nil {
 		if actual == nil {
@@ -172,6 +173,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	}
 	return assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
 }
+
 
 func isNegated(candidate string) (string, bool) {
 	isNot := strings.HasPrefix(candidate, "!")
@@ -349,8 +351,11 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	if len(directive.IndexBy) == 0 {
 		indexable = false
 	}
-
 	for expectedKey, expectedValue := range expected {
+		val := expected[expectedKey]
+		if val == nil || toolbox.AsString(val) == "" {
+			continue
+		}
 		if directive.IsDirectiveKey(expectedKey) {
 			continue
 		}
@@ -428,7 +433,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 	}
 	directive := path.Match(context)
 
-	if toolbox.IsMap(expected[0]) {
+	if toolbox.IsMap(expected[0]) ||toolbox.IsStruct(expected[0]) {
 		first := toolbox.AsMap(expected[0])
 		if directive.ExtractDirectives(first) {
 			expected = expected[1:]
@@ -459,6 +464,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 			}
 
 		} else {
+
 			if ! directive.CaseSensitive {
 				expected = asCaseInsensitiveSlice(expected)
 				actual = asCaseInsensitiveSlice(actual)
@@ -475,9 +481,11 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 				var expectedMap = toolbox.AsMap(expected[i])
 				directive.Add(expectedMap)
 				directive.Apply(expectedMap)
+				expected[i] = expectedMap
 				if i < len(actual) {
 					actualMap := toolbox.AsMap(actual[i])
 					directive.Apply(actualMap)
+					actual[i] = actualMap
 				}
 			}
 
