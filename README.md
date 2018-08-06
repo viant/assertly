@@ -13,6 +13,7 @@ Please refer to [`CHANGELOG.md`](CHANGELOG.md) if you encounter breaking changes
 - [Validation](#Validation)
 - [Directive](#Directive)
 - [Macros](#Macros)
+- [External Resource](#external)
 - [License](#License)
 - [Credits and Acknowledgements](#Credits-and-Acknowledgements)
 
@@ -479,7 +480,7 @@ Predicate allows expected value to be evaluated with actual dataset value using 
 ```
 
 
-
+<a name="external"></a>
 ## External resource
 
 - [Advanced Data Testing with Go](https://www.youtube.com/watch?v=ESUJkSMS47k) 
