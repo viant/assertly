@@ -40,6 +40,7 @@ to [dsunit](https://github.com/viant/dsunit) and [endly](https://github.com/vian
 
 
 
+
 <a name="Usage"></a>
 ## Usage
 
@@ -477,6 +478,12 @@ Predicate allows expected value to be evaluated with actual dataset value using 
     actual := 12-25
 ```
 
+
+
+## External resource
+
+- [Advanced Data Testing with Go](https://www.youtube.com/watch?v=ESUJkSMS47k) 
+- [Advanced Data Testing with Go Presentation](https://github.com/adrianwit/golang-data-testing/raw/master/advanced_data_testing.pptx)
 
 
 ## GoCover
