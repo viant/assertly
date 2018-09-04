@@ -104,16 +104,32 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		return
 	}
 
-	if text, ok := expected.(string); ok {
-		if expected, err = expandExpectedText(text, path, context); err != nil {
+	switch val := expected.(type) {
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		assertInt(expected, actual, path, context, validation)
+		return
+	case float32, float64:
+		assertFloat(expected, actual, path, context, validation)
+		return
+	case string:
+		if expected, err = expandExpectedText(val, path, context); err != nil {
 			return err
 		}
 	}
-	if text, ok := actual.(string); ok {
-		if toolbox.IsCompleteJSON(text) {
-			actual = asDataStructure(text)
+
+	switch val := actual.(type) {
+	case string:
+		if toolbox.IsCompleteJSON(val) {
+			actual = asDataStructure(val)
 		}
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+		assertInt(expected, actual, path, context, validation)
+		return
+	case float32, float64:
+		assertFloat(expected, actual, path, context, validation)
+		return
 	}
+
 	predicate := getPredicate(expected)
 	if predicate != nil {
 		if !predicate.Apply(actual) {
@@ -171,15 +187,6 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		}
 	}
 
-	switch expected.(type) {
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		assertInt(expected, actual, path, context, validation)
-		return
-	case float32, float64:
-		assertFloat(expected, actual, path, context, validation)
-		return
-	}
-
 	return assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
 }
 
@@ -192,7 +199,7 @@ func isNegated(candidate string) (string, bool) {
 }
 
 func assertRegExpr(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) error {
-	expected = string(expected[2: len(expected)-1])
+	expected = string(expected[2 : len(expected)-1])
 	useMultiLine := strings.Count(actual, "\n") > 0
 	pattern := ""
 	if useMultiLine {
@@ -220,7 +227,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 		return fmt.Errorf("invalid range format, expected /[min..max]/ or /[val1,val2,valN]/, but had:%v, path: %v", expected, path.Path())
 	}
 	actual = strings.TrimSpace(actual)
-	expected = string(expected[2: len(expected)-2])
+	expected = string(expected[2 : len(expected)-2])
 	var rangeValues = strings.Split(expected, "..")
 
 	var withinRange bool
@@ -249,7 +256,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 }
 
 func assertContains(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) {
-	expected = string(expected[1: len(expected)-1])
+	expected = string(expected[1 : len(expected)-1])
 	contains := strings.Contains(actual, expected)
 
 	if !contains && !isNegated {
