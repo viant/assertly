@@ -199,7 +199,7 @@ func isNegated(candidate string) (string, bool) {
 }
 
 func assertRegExpr(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) error {
-	expected = string(expected[2 : len(expected)-1])
+	expected = string(expected[2: len(expected)-1])
 	useMultiLine := strings.Count(actual, "\n") > 0
 	pattern := ""
 	if useMultiLine {
@@ -227,7 +227,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 		return fmt.Errorf("invalid range format, expected /[min..max]/ or /[val1,val2,valN]/, but had:%v, path: %v", expected, path.Path())
 	}
 	actual = strings.TrimSpace(actual)
-	expected = string(expected[2 : len(expected)-2])
+	expected = string(expected[2: len(expected)-2])
 	var rangeValues = strings.Split(expected, "..")
 
 	var withinRange bool
@@ -256,7 +256,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 }
 
 func assertContains(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) {
-	expected = string(expected[1 : len(expected)-1])
+	expected = string(expected[1: len(expected)-1])
 	contains := strings.Contains(actual, expected)
 
 	if !contains && !isNegated {
@@ -327,7 +327,15 @@ func assertInt(expected, actual interface{}, path DataPath, context *Context, va
 
 func assertFloat(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
 	isEqual := toolbox.AsFloat(expected) == toolbox.AsFloat(actual)
+
 	if !isEqual {
+
+		if text, ok := expected.(string); ok {
+			if strings.HasPrefix(text, "/") || strings.HasPrefix(text, "!") {
+				assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
+				return
+			}
+		}
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
 	} else {
 		validation.PassedCount++
