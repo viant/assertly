@@ -319,6 +319,12 @@ func actualMap(expected, actualValue interface{}, path DataPath, directive *Dire
 func assertInt(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
 	isEqual := toolbox.AsInt(expected) == toolbox.AsInt(actual)
 	if !isEqual {
+		if text, ok := expected.(string); ok {
+			if strings.HasPrefix(text, "/") || strings.HasPrefix(text, "!") {
+				assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
+				return
+			}
+		}
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
 	} else {
 		validation.PassedCount++
