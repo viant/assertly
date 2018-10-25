@@ -486,9 +486,15 @@ func TestAssertText(t *testing.T) {
 			PassedCount: 1,
 		},
 		{
-			Description: "text qual test",
+			Description: "text equal test",
 			Expected:    "!123",
 			Actual:      "123",
+			FailedCount: 1,
+		},
+		{
+			Description: "text qual test",
+			Expected:    "!0",
+			Actual:      "0",
 			FailedCount: 1,
 		},
 	}
