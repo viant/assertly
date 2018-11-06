@@ -1,6 +1,11 @@
 package assertly
 
-import "testing"
+import (
+	"fmt"
+	"github.com/viant/toolbox"
+	"strings"
+	"testing"
+)
 
 func Test_AssertValues(t *testing.T) {
 	var actual = `[
@@ -97,4 +102,83 @@ func Test_AssertValues(t *testing.T) {
 ]
 `
 	AssertValues(t, expected, actual)
+}
+
+type fooProvider struct{}
+
+func (*fooProvider) Get(context toolbox.Context, arguments ...interface{}) (interface{}, error) {
+	var args = []string{}
+	for _, arg := range arguments {
+		args = append(args, toolbox.AsString(arg))
+	}
+	return fmt.Sprintf("foo{%v}", strings.Join(args, ",")), nil
+}
+
+func Test_AssertValuesWithContext(t *testing.T) {
+	ctx := NewDefaultContext()
+	var provider toolbox.ValueProvider = &fooProvider{}
+	ctx.Evaluator.ValueProviderRegistry.Register("foo", provider)
+
+	var expected = map[string]string{
+		"k1": "v1",
+		"k2": "Macro test: <ds:foo[1,\"abc\"]>",
+	}
+	var actual = map[string]string{
+		"k1": "v1",
+		"k2": "Macro test: foo{1,abc}",
+	}
+
+	AssertValuesWithContext(ctx, t, expected, actual)
+}
+
+type rangePredicate struct {
+	min    int
+	max    int
+	actual int
+	err    error
+}
+
+func (p *rangePredicate) String() string {
+	return fmt.Sprintf("min: %v, max: %v, actual: %v, err: %v", p.min, p.max, p.actual, p.err)
+}
+
+func (p *rangePredicate) Apply(value interface{}) bool {
+	p.actual, p.err = toolbox.ToInt(value)
+	return p.actual >= p.min && p.actual <= p.max
+}
+
+type inRangePredicateProvider struct{}
+
+func (*inRangePredicateProvider) Get(context toolbox.Context, arguments ...interface{}) (interface{}, error) {
+	if len(arguments) != 2 {
+		return nil, fmt.Errorf("expected 2 arguments (min, max) but had: %v", len(arguments))
+	}
+	min, err := toolbox.ToInt(arguments[0])
+	if err != nil {
+		return nil, fmt.Errorf("invalid min %v", err)
+	}
+	max, err := toolbox.ToInt(arguments[1])
+	if err != nil {
+		return nil, fmt.Errorf("invalid min %v", err)
+	}
+	var predicate toolbox.Predicate = &rangePredicate{min: min, max: max}
+	return &predicate, nil
+}
+
+func Test_AssertValuesWithContextPredicate(t *testing.T) {
+	ctx := NewDefaultContext()
+	var provider toolbox.ValueProvider = &inRangePredicateProvider{}
+	ctx.Evaluator.ValueProviderRegistry.Register("inRange", provider)
+
+	var actual = map[string]int{
+		"k1": 1,
+		"k2": 3,
+	}
+
+	var expected = map[string]string{
+		"k1": "1",
+		"k2": "<ds:inRange[2,10]>",
+	}
+
+	AssertValuesWithContext(ctx, t, expected, actual)
 }
