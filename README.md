@@ -127,7 +127,7 @@ func Test_XX(t *testing.T) {
       }
     }`,
     
-    assertly.AssertValues(t, expectedRecords, actualRecords)
+    assertly.AssertValues(t, expectedConfig, actualConfig)
    	
 }
 
