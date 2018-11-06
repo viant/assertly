@@ -158,14 +158,16 @@ func Test_XX(t *testing.T) {
 	var provider toolbox.ValueProvider = &fooProvider{}
 	ctx.Evaluator.ValueProviderRegistry.Register("foo", provider)
 
-	var expected = map[string]string{
-		"k1":"v1",
-		"k2":"Macro test: <ds:foo[1,\"abc\"]> !",
-	}
 	var actual = map[string]string{
 		"k1":"v1",
 		"k2":"Macro test: foo{1,abc} !",
 	}
+	
+	var expected = map[string]string{
+		"k1":"v1",
+		"k2":"Macro test: <ds:foo[1,\"abc\"]> !",
+	}
+
 
 	AssertValuesWithContext(ctx, t, expected, actual)
 }
