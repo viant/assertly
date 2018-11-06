@@ -42,7 +42,8 @@ func Assert(expected, actual interface{}, path DataPath) (*Validation, error) {
 func handleFailure(t *testing.T, args ...interface{}) {
 	file, method, line := toolbox.DiscoverCaller(2, 10, "assert.go", "stack_helper.go", "validator.go")
 	_, file = path.Split(file)
-	fmt.Printf("%v:%v (%v)\n%v\n", file, line, method, fmt.Sprint(args))
+	var argsLiteral = fmt.Sprint(args...)
+	fmt.Printf("%v:%v (%v)\n%v\n", file, line, method, argsLiteral)
 	t.Fail()
 }
 
@@ -117,21 +118,21 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		}
 	}
 
-	switch val := actual.(type) {
-	case string:
-		if toolbox.IsCompleteJSON(val) {
-			actual = asDataStructure(val)
-		}
-	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
-		assertInt(expected, actual, path, context, validation)
-		return
-	case float32, float64:
-		assertFloat(expected, actual, path, context, validation)
-		return
-	}
-
 	predicate := getPredicate(expected)
-	if predicate != nil {
+	if predicate == nil {
+		switch val := actual.(type) {
+		case string:
+			if toolbox.IsCompleteJSON(val) {
+				actual = asDataStructure(val)
+			}
+		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+			assertInt(expected, actual, path, context, validation)
+			return
+		case float32, float64:
+			assertFloat(expected, actual, path, context, validation)
+			return
+		}
+	} else {
 		if !predicate.Apply(actual) {
 			validation.AddFailure(NewFailure(path.Source(), path.Path(), PredicateViolation, fmt.Sprintf("%T%v", predicate, predicate), actual))
 		} else {
@@ -341,7 +342,6 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 	expectedFloat, err := toolbox.ToFloat(expected)
 	isEqual := err == nil && expectedFloat == toolbox.AsFloat(actual)
 	if !isEqual {
-
 		if text, ok := expected.(string); ok {
 			if strings.HasPrefix(text, "/") || strings.HasPrefix(text, "!") {
 				assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
@@ -397,7 +397,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	}
 
 	if err := directive.Apply(expected); err != nil {
-		log.Print("failed to apply driected to expected value:" + err.Error())
+		log.Print("failed to apply directive to expected value:" + err.Error())
 	}
 
 	indexable := isIndexable(expected)
