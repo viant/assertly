@@ -246,10 +246,7 @@ func (d *Directive) applyTimeFormat(aMap map[string]interface{}) error {
 	}
 	for key, layout := range d.TimeLayouts {
 		val, ok := aMap[key]
-		if !ok || val == nil {
-			continue
-		}
-		if !toolbox.IsFunc(val) {
+		if !ok || val == nil || getPredicate(val) != nil || toolbox.IsFunc(val) {
 			continue
 		}
 		timeValue, err := toolbox.ToTime(val, layout)
@@ -270,7 +267,12 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 		var casted interface{}
 
 		val, ok := aMap[key]
-		if !ok || val == nil {
+		if !ok || val == nil || getPredicate(val) != nil || toolbox.IsFunc(val) {
+			continue
+		}
+
+		textVal := toolbox.AsString(val)
+		if strings.HasPrefix(textVal, "<") || strings.HasSuffix(textVal, ">") {
 			continue
 		}
 
