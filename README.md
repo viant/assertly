@@ -77,9 +77,7 @@ func Test_XX(t *testing.T) {
 
 func Test_XX(t *testing.T) {
     
-   	
-   	
-   	var actualConfig = &Config{
+    var actualConfig = &Config{
         Endpoint: &Endpoint{
             Port: 8080,
             TimeoutMs: 2000,
@@ -107,28 +105,29 @@ func Test_XX(t *testing.T) {
             },
         },
     }
-                       
-                       
-   	var expectedConfig = expected: `{
-                   	  "Endpoint": {
-                   		"Port": 8080,
-                   		"TimeoutMs": 2000
-                   	  },
-                   	  "LogTypes": {
-                   		"type1": {
-                   		  "Locations":[
-                   			{
-                   			  "URL":"~/type1/"
-                   			}
-                   		  ],
-                   		  "MaxQueueSize": 2048,
-                   		  "QueueFlashCount": 1024,
-                   		  "FlushFrequencyInMs": 500
-                   		},
-                   		"type2": "@exists@" 
-                   	  }
-                   	}`,
-   	assertly.AssertValues(t, expectedRecords, actualRecords)
+                           
+       
+    var expectedConfig = expected: `{
+      "Endpoint": {
+        "Port": 8080,
+        "TimeoutMs": 2000
+      },
+      "LogTypes": {
+        "type1": {
+          "Locations":[
+            {
+              "URL":"~/type1/"
+            }
+          ],
+          "MaxQueueSize": 2048,
+          "QueueFlashCount": 1024,
+          "FlushFrequencyInMs": 500
+        },
+        "type2": "@exists@" 
+      }
+    }`,
+    
+    assertly.AssertValues(t, expectedRecords, actualRecords)
    	
 }
 
