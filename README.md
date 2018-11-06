@@ -596,7 +596,7 @@ The following macro are build-in:
 
 ## Predicates
 
-Predicate allows expected value to be evaluated with actual dataset value using custom predicate logic.
+Predicate allows expected value to be evaluated with actual data using custom predicate logic.
 
 
 | Name | Parameters | Description | Example | 
