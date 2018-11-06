@@ -249,6 +249,9 @@ func (d *Directive) applyTimeFormat(aMap map[string]interface{}) error {
 		if !ok || val == nil {
 			continue
 		}
+		if !toolbox.IsFunc(val) {
+			continue
+		}
 		timeValue, err := toolbox.ToTime(val, layout)
 		if err != nil {
 			return err

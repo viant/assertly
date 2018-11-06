@@ -139,8 +139,8 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		}
 		return nil
 	}
-	dateLayout := path.Match(context).DefaultTimeLayout()
 
+	dateLayout := path.Match(context).DefaultTimeLayout()
 	if toolbox.IsTime(expected) || toolbox.IsTime(actual) {
 		expectedTime, _ := toolbox.ToTime(expected, dateLayout)
 		return assertTime(expectedTime, actual, path, context, validation)
@@ -199,7 +199,7 @@ func isNegated(candidate string) (string, bool) {
 }
 
 func assertRegExpr(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) error {
-	expected = string(expected[2: len(expected)-1])
+	expected = string(expected[2 : len(expected)-1])
 	useMultiLine := strings.Count(actual, "\n") > 0
 	pattern := ""
 	if useMultiLine {
@@ -227,7 +227,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 		return fmt.Errorf("invalid range format, expected /[min..max]/ or /[val1,val2,valN]/, but had:%v, path: %v", expected, path.Path())
 	}
 	actual = strings.TrimSpace(actual)
-	expected = string(expected[2: len(expected)-2])
+	expected = string(expected[2 : len(expected)-2])
 	var rangeValues = strings.Split(expected, "..")
 
 	var withinRange bool
@@ -256,7 +256,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 }
 
 func assertContains(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) {
-	expected = string(expected[1: len(expected)-1])
+	expected = string(expected[1 : len(expected)-1])
 	contains := strings.Contains(actual, expected)
 
 	if !contains && !isNegated {
@@ -373,7 +373,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	}
 	directive.ExtractDataTypes(actual)
 	if err := directive.Apply(actual); err != nil {
-		log.Print(err.Error())
+		log.Print("failed to apply directive to actual actual value: " + err.Error())
 	}
 
 	if len(directive.SwitchBy) > 0 {
@@ -397,7 +397,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	}
 
 	if err := directive.Apply(expected); err != nil {
-		log.Print(err.Error())
+		log.Print("failed to apply driected to expected value:" + err.Error())
 	}
 
 	indexable := isIndexable(expected)
