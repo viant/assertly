@@ -83,10 +83,24 @@ func expandExpectedText(text string, path DataPath, context *Context) (interface
 
 func assertTime(expected *time.Time, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
 	dateLayout := path.Match(context).DefaultTimeLayout()
-	expectedTime, _ := toolbox.ToTime(expected, dateLayout)
-	if actualTime, err := toolbox.ToTime(actual, dateLayout); err == nil && expectedTime != nil {
+
+	actualTime, err := toolbox.ToTime(actual, dateLayout)
+	if err == nil {
 		actual = actualTime
-		if expectedTime.Equal(*actualTime) {
+		if expected == nil {
+			if actualTime == nil {
+				validation.PassedCount++
+				return nil
+			}
+			validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
+		}
+
+		if actualTime == nil {
+			validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
+			return nil
+		}
+
+		if expected.Equal(*actualTime) {
 			validation.PassedCount++
 			return nil
 		}
@@ -133,6 +147,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 			return
 		}
 	} else {
+
 		if !predicate.Apply(actual) {
 			validation.AddFailure(NewFailure(path.Source(), path.Path(), PredicateViolation, fmt.Sprintf("%T%v", predicate, predicate), actual))
 		} else {
@@ -200,7 +215,7 @@ func isNegated(candidate string) (string, bool) {
 }
 
 func assertRegExpr(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) error {
-	expected = string(expected[2 : len(expected)-1])
+	expected = string(expected[2: len(expected)-1])
 	useMultiLine := strings.Count(actual, "\n") > 0
 	pattern := ""
 	if useMultiLine {
@@ -228,7 +243,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 		return fmt.Errorf("invalid range format, expected /[min..max]/ or /[val1,val2,valN]/, but had:%v, path: %v", expected, path.Path())
 	}
 	actual = strings.TrimSpace(actual)
-	expected = string(expected[2 : len(expected)-2])
+	expected = string(expected[2: len(expected)-2])
 	var rangeValues = strings.Split(expected, "..")
 
 	var withinRange bool
@@ -257,7 +272,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 }
 
 func assertContains(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) {
-	expected = string(expected[1 : len(expected)-1])
+	expected = string(expected[1: len(expected)-1])
 	contains := strings.Contains(actual, expected)
 
 	if !contains && !isNegated {
@@ -339,14 +354,21 @@ func assertInt(expected, actual interface{}, path DataPath, context *Context, va
 }
 
 func assertFloat(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
-	expectedFloat, err := toolbox.ToFloat(expected)
-	isEqual := err == nil && expectedFloat == toolbox.AsFloat(actual)
+	expectedFloat, err1 := toolbox.ToFloat(expected)
+	actualFloat, err2 := toolbox.ToFloat(actual)
+	isEqual := err1 == nil && err2 == nil && expectedFloat == actualFloat
 	if !isEqual {
 		if text, ok := expected.(string); ok {
 			if strings.HasPrefix(text, "/") || strings.HasPrefix(text, "!") {
 				assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
 				return
 			}
+		}
+		if float64(int(expectedFloat)) == expectedFloat {
+			expected = int(expectedFloat)
+		}
+		if float64(int(actualFloat)) == actualFloat {
+			actual = int(actualFloat)
 		}
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
 	} else {
