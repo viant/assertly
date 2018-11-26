@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/viant/toolbox"
 	"log"
+	"math"
 	"path"
 	"reflect"
 	"regexp"
@@ -215,7 +216,7 @@ func isNegated(candidate string) (string, bool) {
 }
 
 func assertRegExpr(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) error {
-	expected = string(expected[2: len(expected)-1])
+	expected = string(expected[2 : len(expected)-1])
 	useMultiLine := strings.Count(actual, "\n") > 0
 	pattern := ""
 	if useMultiLine {
@@ -243,7 +244,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 		return fmt.Errorf("invalid range format, expected /[min..max]/ or /[val1,val2,valN]/, but had:%v, path: %v", expected, path.Path())
 	}
 	actual = strings.TrimSpace(actual)
-	expected = string(expected[2: len(expected)-2])
+	expected = string(expected[2 : len(expected)-2])
 	var rangeValues = strings.Split(expected, "..")
 
 	var withinRange bool
@@ -272,7 +273,7 @@ func assertRange(isNegated bool, expected, actual string, path DataPath, context
 }
 
 func assertContains(isNegated bool, expected, actual string, path DataPath, context *Context, validation *Validation) {
-	expected = string(expected[1: len(expected)-1])
+	expected = string(expected[1 : len(expected)-1])
 	contains := strings.Contains(actual, expected)
 
 	if !contains && !isNegated {
@@ -356,6 +357,16 @@ func assertInt(expected, actual interface{}, path DataPath, context *Context, va
 func assertFloat(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
 	expectedFloat, err1 := toolbox.ToFloat(expected)
 	actualFloat, err2 := toolbox.ToFloat(actual)
+
+	directive := path.Directive()
+	if directive != nil {
+		precisionPoint := float64(directive.NumericPrecisionPoint)
+		if err1 == nil && err2 == nil && precisionPoint > 0 {
+			expectedFloat = float64(int(expectedFloat*math.Pow(10, precisionPoint))) / precisionPoint
+			actualFloat = float64(int(actualFloat*math.Pow(10, precisionPoint))) / precisionPoint
+		}
+	}
+
 	isEqual := err1 == nil && err2 == nil && expectedFloat == actualFloat
 	if !isEqual {
 		if text, ok := expected.(string); ok {

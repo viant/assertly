@@ -336,6 +336,7 @@ Directive is piece of information instructing validator to either convert data j
 -	CastDataTypeDirective     = "@cast@"
 -	IndexByDirective          = "@indexBy@"
 -   CaseSensitiveDirective    =  @caseSensitive@
+-   NumericPrecisionPoint     = "@numericPrecisionPoint@"
 
 
 ### Index by
@@ -571,6 +572,46 @@ Supported data type casting:
 ## CaseSensitiveDirective
 
 By default map key match is case sensitive, directive allows to disable that behaviours.
+
+
+
+## NumericPrecisionPoint
+
+NumericPrecisionPoint controls numeric precision validation comparision
+
+**Example**
+
+\#expected 
+ ```json
+ [
+   {
+     "@numericPrecisionPoint@":"7"
+   },
+   {
+       "field1":0.006521405,
+        "field2":123
+   },
+   {
+      "field1":0.006521408,
+      "field2":551
+   }
+ ]
+```
+
+\#actual
+```json
+[
+   {
+       "field1":0.0065214,
+        "field2":123
+   },
+   {
+      "field1":0.0065214,
+      "field2":551
+   }
+]
+```
+
 
 ## Source directive
 

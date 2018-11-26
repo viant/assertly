@@ -46,15 +46,17 @@ type dataPath struct {
 
 func (p *dataPath) Index(index int) DataPath {
 	return &dataPath{
-		index:  index,
-		parent: p,
+		index:     index,
+		parent:    p,
+		directive: p.directive,
 	}
 }
 
 func (p *dataPath) Key(field string) DataPath {
 	return &dataPath{
-		key:    field,
-		parent: p,
+		key:       field,
+		parent:    p,
+		directive: p.directive,
 	}
 }
 

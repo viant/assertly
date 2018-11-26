@@ -1046,6 +1046,34 @@ func TestAssertStructureWithIndexDirective(t *testing.T) {
 
 }
 
+func TestAssertNumericPrecission(t *testing.T) {
+	var useCases = []*assertUseCase{
+
+		{
+			Description: "data structure with numericPrecisionPoint",
+			Expected: `[
+		{
+			"@numericPrecisionPoint@":"7"
+		},
+  		{
+			"tac":0.006521405
+        }
+      ]
+`,
+			Actual: `[
+{
+	"tac": 0.0065214
+}
+]`,
+			PassedCount: 1,
+			FailedCount: 0,
+		},
+	}
+
+	context := assertly.NewDefaultContext()
+	runUseCasesWithContext(t, useCases, context)
+}
+
 func TestAssertMultiIndexBy(t *testing.T) {
 	var useCases = []*assertUseCase{
 

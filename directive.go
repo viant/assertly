@@ -17,21 +17,23 @@ const (
 	CaseSensitiveDirective    = "@caseSensitive@"
 	SourceDirective           = "@source@"
 	SortTextDirective         = "@sortText@"
+	NumericPrecisionPoint     = "@numericPrecisionPoint@"
 )
 
 //Match represents a validation TestDirective
 type Directive struct {
 	DataPath
-	KeyExists       map[string]bool
-	KeyDoesNotExist map[string]bool
-	TimeLayout      string
-	CaseSensitive   bool
-	TimeLayouts     map[string]string
-	DataType        map[string]string
-	SwitchBy        []string
-	IndexBy         []string
-	Source          string
-	SortText        bool
+	KeyExists             map[string]bool
+	KeyDoesNotExist       map[string]bool
+	TimeLayout            string
+	CaseSensitive         bool
+	TimeLayouts           map[string]string
+	DataType              map[string]string
+	SwitchBy              []string
+	NumericPrecisionPoint int
+	IndexBy               []string
+	Source                string
+	SortText              bool
 }
 
 func (d *Directive) mergeFrom(source *Directive) {
@@ -41,6 +43,10 @@ func (d *Directive) mergeFrom(source *Directive) {
 	mergeBoolMap(source.KeyDoesNotExist, &d.KeyDoesNotExist)
 	if d.MatchingPath() == "" && len(d.IndexBy) == 0 {
 		d.IndexBy = source.IndexBy
+	}
+
+	if d.NumericPrecisionPoint == 0 {
+		d.NumericPrecisionPoint = source.NumericPrecisionPoint
 	}
 	if d.TimeLayout == "" {
 		d.TimeLayout = source.TimeLayout
@@ -181,6 +187,11 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 			continue
 		}
 
+		if k == NumericPrecisionPoint {
+			d.NumericPrecisionPoint = toolbox.AsInt(v)
+			continue
+		}
+
 		if k == SourceDirective {
 			d.Source = toolbox.AsString(v)
 			continue
@@ -225,6 +236,9 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 func (d *Directive) Apply(aMap map[string]interface{}) error {
 	if err := d.applyTimeFormat(aMap); err != nil {
 		return err
+	}
+	if d.NumericPrecisionPoint != 0 {
+		aMap[NumericPrecisionPoint] = d.NumericPrecisionPoint
 	}
 	if err := d.castData(aMap); err != nil {
 		return err
@@ -334,6 +348,17 @@ func NewDirective(dataPath DataPath) *Directive {
 		return true
 	})
 
+	//inherit default numeric precision point
+	dataPath.Each(func(path DataPath) bool {
+		directive := path.Directive()
+		if directive != nil {
+			if directive.NumericPrecisionPoint != 0 {
+				result.NumericPrecisionPoint = directive.NumericPrecisionPoint
+				return false
+			}
+		}
+		return true
+	})
 	return result
 }
 
