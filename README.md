@@ -337,7 +337,7 @@ Directive is piece of information instructing validator to either convert data j
 -	IndexByDirective          = "@indexBy@"
 -   CaseSensitiveDirective    =  @caseSensitive@
 -   NumericPrecisionPoint     = "@numericPrecisionPoint@"
-
+-   CoalesceWithZero          = "@coalesceWithZero@"
 
 ### Index by
 
@@ -612,6 +612,9 @@ NumericPrecisionPoint controls numeric precision validation comparision
 ]
 ```
 
+## CoalesceWithZero
+
+Coalesce with zero directive sets all nil numeric values to zero 
 
 ## Source directive
 

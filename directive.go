@@ -18,6 +18,7 @@ const (
 	SourceDirective           = "@source@"
 	SortTextDirective         = "@sortText@"
 	NumericPrecisionPoint     = "@numericPrecisionPoint@"
+	CoalesceWithZero          = "@coalesceWithZero@"
 )
 
 //Match represents a validation TestDirective
@@ -30,6 +31,7 @@ type Directive struct {
 	TimeLayouts           map[string]string
 	DataType              map[string]string
 	SwitchBy              []string
+	CoalesceWithZero      bool
 	NumericPrecisionPoint int
 	IndexBy               []string
 	Source                string
@@ -139,6 +141,14 @@ func (d *Directive) Add(target map[string]interface{}) {
 		target[IndexByDirective] = d.IndexBy
 	}
 
+	if d.NumericPrecisionPoint > 0 {
+		target[NumericPrecisionPoint] = d.NumericPrecisionPoint
+	}
+
+	if d.CoalesceWithZero {
+		target[CoalesceWithZero] = d.CoalesceWithZero
+	}
+
 	if len(d.DataType) > 0 {
 		for k, v := range d.DataType {
 			target[CastDataTypeDirective+k] = v
@@ -192,6 +202,11 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 			continue
 		}
 
+		if k == CoalesceWithZero {
+			d.CoalesceWithZero = toolbox.AsBoolean(v)
+			continue
+		}
+
 		if k == SourceDirective {
 			d.Source = toolbox.AsString(v)
 			continue
@@ -239,6 +254,9 @@ func (d *Directive) Apply(aMap map[string]interface{}) error {
 	}
 	if d.NumericPrecisionPoint != 0 {
 		aMap[NumericPrecisionPoint] = d.NumericPrecisionPoint
+	}
+	if d.CoalesceWithZero {
+		aMap[CoalesceWithZero] = d.CoalesceWithZero
 	}
 	if err := d.castData(aMap); err != nil {
 		return err
@@ -306,12 +324,15 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 			casted, err = toolbox.ToFloat(val)
 		case "int":
 			casted, err = toolbox.ToInt(val)
+
 		case "bool":
 			casted = toolbox.AsBoolean(val)
 		default:
 			err = fmt.Errorf("unsupported cast type: %v", dataType)
 		}
-		if err != nil {
+		if toolbox.IsNilPointerError(err) {
+			casted = nil
+		} else if err != nil {
 			return err
 		}
 		aMap[key] = casted
@@ -354,6 +375,18 @@ func NewDirective(dataPath DataPath) *Directive {
 		if directive != nil {
 			if directive.NumericPrecisionPoint != 0 {
 				result.NumericPrecisionPoint = directive.NumericPrecisionPoint
+				return false
+			}
+		}
+		return true
+	})
+
+	//inherit default numeric precision point
+	dataPath.Each(func(path DataPath) bool {
+		directive := path.Directive()
+		if directive != nil {
+			if directive.CoalesceWithZero {
+				result.CoalesceWithZero = directive.CoalesceWithZero
 				return false
 			}
 		}

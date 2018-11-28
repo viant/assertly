@@ -182,3 +182,19 @@ func Test_AssertValuesWithContextPredicate(t *testing.T) {
 
 	AssertValuesWithContext(ctx, t, expected, actual)
 }
+
+func Test_AssertValues_ConcreteValues(t *testing.T) {
+	{
+		var i = 0
+		AssertValues(t, 0, &i, "int with *int")
+	}
+	{
+		var i = 0
+		AssertValues(t, 0.0, &i, "float with *int")
+	}
+	{
+		var i = 0.0
+		AssertValues(t, 0.0, &i, "float with *float")
+	}
+
+}

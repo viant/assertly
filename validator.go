@@ -84,7 +84,6 @@ func expandExpectedText(text string, path DataPath, context *Context) (interface
 
 func assertTime(expected *time.Time, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
 	dateLayout := path.Match(context).DefaultTimeLayout()
-
 	actualTime, err := toolbox.ToTime(actual, dateLayout)
 	if err == nil {
 		actual = actualTime
@@ -101,6 +100,12 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 			return nil
 		}
 
+		if expected.Location() != actualTime.Location() {
+			actualTimeInLoc := actualTime.In(expected.Location())
+			actualTime = &actualTimeInLoc
+			actual = actualTime
+		}
+
 		if expected.Equal(*actualTime) {
 			validation.PassedCount++
 			return nil
@@ -111,6 +116,7 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 }
 
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
+
 	if expected == nil {
 		if actual == nil {
 			validation.PassedCount++
@@ -286,6 +292,7 @@ func assertContains(isNegated bool, expected, actual string, path DataPath, cont
 }
 
 func assertText(expected, actual string, path DataPath, context *Context, validation *Validation) error {
+
 	expected = strings.TrimSpace(expected)
 	if strings.HasSuffix(expected, "/") {
 		expected, isNegated := isNegated(expected)
@@ -305,6 +312,7 @@ func assertText(expected, actual string, path DataPath, context *Context, valida
 	}
 	expected, isNegated := isNegated(expected)
 	isEqual := expected == actual
+
 	if !isEqual && !isNegated {
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
 	} else if isEqual && isNegated {
@@ -334,13 +342,23 @@ func actualMap(expected, actualValue interface{}, path DataPath, directive *Dire
 }
 
 func assertInt(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
-	expectedInt, err := toolbox.ToInt(expected)
-	if err != nil {
+	directive := path.Directive()
+	expectedInt, actualErr := toolbox.ToInt(expected)
+	if actualErr != nil {
 		assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
 		return
 	}
-	actualInt, err := toolbox.ToInt(actual)
-	isEqual := err == nil && expectedInt == actualInt
+	actualInt, actualErr := toolbox.ToInt(actual)
+
+	isEqual := actualErr == nil && expectedInt == actualInt
+	if toolbox.IsNilPointerError(actualErr) {
+		if directive != nil && directive.CoalesceWithZero {
+			actualErr = nil
+			actualInt = 0
+			actual = 0
+		}
+	}
+
 	if !isEqual {
 		if text, ok := expected.(string); ok {
 			if strings.HasPrefix(text, "/") || strings.HasPrefix(text, "!") {
@@ -355,19 +373,27 @@ func assertInt(expected, actual interface{}, path DataPath, context *Context, va
 }
 
 func assertFloat(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
-	expectedFloat, err1 := toolbox.ToFloat(expected)
-	actualFloat, err2 := toolbox.ToFloat(actual)
-
 	directive := path.Directive()
+	expectedFloat, expectedErr := toolbox.ToFloat(expected)
+	actualFloat, actualErr := toolbox.ToFloat(actual)
+
+	if toolbox.IsNilPointerError(actualErr) {
+		if directive != nil && directive.CoalesceWithZero {
+			actualErr = nil
+			actualFloat = 0
+			actual = 0
+		}
+	}
 	if directive != nil {
 		precisionPoint := float64(directive.NumericPrecisionPoint)
-		if err1 == nil && err2 == nil && precisionPoint > 0 {
-			expectedFloat = float64(int(expectedFloat*math.Pow(10, precisionPoint))) / precisionPoint
-			actualFloat = float64(int(actualFloat*math.Pow(10, precisionPoint))) / precisionPoint
+		if expectedErr == nil && actualErr == nil && precisionPoint > 0 {
+			unit := 1 / math.Pow(10, precisionPoint)
+			expectedFloat = math.Round(expectedFloat/unit) * unit
+			actualFloat = math.Round(actualFloat/unit) * unit
 		}
 	}
 
-	isEqual := err1 == nil && err2 == nil && expectedFloat == actualFloat
+	isEqual := expectedErr == nil && actualErr == nil && expectedFloat == actualFloat
 	if !isEqual {
 		if text, ok := expected.(string); ok {
 			if strings.HasPrefix(text, "/") || strings.HasPrefix(text, "!") {
@@ -375,10 +401,10 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 				return
 			}
 		}
-		if float64(int(expectedFloat)) == expectedFloat {
+		if expectedErr == nil && float64(int(expectedFloat)) == expectedFloat {
 			expected = int(expectedFloat)
 		}
-		if float64(int(actualFloat)) == actualFloat {
+		if actualErr == nil && float64(int(actualFloat)) == actualFloat {
 			actual = int(actualFloat)
 		}
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))

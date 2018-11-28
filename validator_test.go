@@ -918,8 +918,8 @@ func runUseCasesWithContext(t *testing.T, useCases []*assertUseCase, context *as
 			assert.NotNil(t, err, useCase.Description)
 			continue
 		}
-		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, useCase.Description)
-		assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, useCase.Description)
+		assert.EqualValues(t, useCase.PassedCount, validation.PassedCount, "PassedCount "+useCase.Description)
+		assert.EqualValues(t, useCase.FailedCount, validation.FailedCount, "FailedCount "+useCase.Description)
 		assert.EqualValues(t, useCase.FailedCount > 0, validation.HasFailure())
 		if validation.HasFailure() {
 			fmt.Printf("%v\n", validation.Report())
@@ -1067,6 +1067,50 @@ func TestAssertNumericPrecission(t *testing.T) {
 ]`,
 			PassedCount: 1,
 			FailedCount: 0,
+		},
+	}
+
+	context := assertly.NewDefaultContext()
+	runUseCasesWithContext(t, useCases, context)
+}
+
+func TestAssertCoalesceWithZero(t *testing.T) {
+	var useCases = []*assertUseCase{
+
+		{
+			Description: "data structure with coalesceWithZero",
+			Expected: `[
+		{
+			"@coalesceWithZero@": true
+		},
+  		{
+			"tac":0
+        }
+      ]
+`,
+			Actual: `[
+{
+	"tac": null
+}
+]`,
+			PassedCount: 1,
+			FailedCount: 0,
+		},
+		{
+			Description: "data structure without  coalesceWithZero",
+			Expected: `[
+		{
+			"tac":0
+        }
+      ]
+`,
+			Actual: `[
+{
+	"tac": null
+}
+]`,
+			PassedCount: 0,
+			FailedCount: 1,
 		},
 	}
 

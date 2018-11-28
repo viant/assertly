@@ -1,3 +1,9 @@
+## Nov 26 2018 - v0.2.2
+    * Added coalesceWithZero directive, patched 0 | 0.0 with nil validation
+
+## Nov 26 2018 - v0.2.1
+    * Added numericPrecisionPoint directive
+
 ## Nov 26 2018 - v0.2.0
     * Added numericPrecisionPoint directive
 
