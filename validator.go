@@ -350,7 +350,6 @@ func assertInt(expected, actual interface{}, path DataPath, context *Context, va
 	}
 	actualInt, actualErr := toolbox.ToInt(actual)
 
-	isEqual := actualErr == nil && expectedInt == actualInt
 	if toolbox.IsNilPointerError(actualErr) {
 		if directive != nil && directive.CoalesceWithZero {
 			actualErr = nil
@@ -358,7 +357,7 @@ func assertInt(expected, actual interface{}, path DataPath, context *Context, va
 			actual = 0
 		}
 	}
-
+	isEqual := actualErr == nil && expectedInt == actualInt
 	if !isEqual {
 		if text, ok := expected.(string); ok {
 			if strings.HasPrefix(text, "/") || strings.HasPrefix(text, "!") {
