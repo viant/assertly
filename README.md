@@ -328,16 +328,17 @@ var actual = `
 ## Directive
 
 Directive is piece of information instructing validator to either convert data just before validation takes place or to validate a date according to provided rules. 
--	KeyExistsDirective        = "@exists@"
--	KeyDoesNotExistsDirective = "@!exists@"
--	TimeFormatDirective       = "@timeFormat@"
--	TimeLayoutDirective       = "@timeLayout@"
--	SwitchByDirective         = "@switchCaseBy@"
--	CastDataTypeDirective     = "@cast@"
--	IndexByDirective          = "@indexBy@"
--   CaseSensitiveDirective    =  @caseSensitive@
--   NumericPrecisionPoint     = "@numericPrecisionPoint@"
--   CoalesceWithZero          = "@coalesceWithZero@"
+-	KeyExistsDirective          = "@exists@"
+-	KeyDoesNotExistsDirective   = "@!exists@"
+-	TimeFormatDirective         = "@timeFormat@"
+-	TimeLayoutDirective         = "@timeLayout@"
+-	SwitchByDirective           = "@switchCaseBy@"
+-	CastDataTypeDirective       = "@cast@"
+-	IndexByDirective            = "@indexBy@"
+-	CaseSensitiveDirective      = "@caseSensitive@"
+-	KeyCaseSensitiveDirective = "@CaseSensitive@"
+-   NumericPrecisionPoint       = "@numericPrecisionPoint@"
+-   CoalesceWithZero            = "@coalesceWithZero@"
 
 ### Index by
 
@@ -569,9 +570,13 @@ Supported data type casting:
 ```
 
 
-## CaseSensitiveDirective
+## KeyCaseSensitiveDirective
 
 By default map key match is case sensitive, directive allows to disable that behaviours.
+
+## CaseSensitiveDirective
+
+By default text value match is case sensitive, directive allows to disable that behaviours.
 
 
 

@@ -14,6 +14,7 @@ const (
 	SwitchByDirective         = "@switchCaseBy@"
 	CastDataTypeDirective     = "@cast@"
 	IndexByDirective          = "@indexBy@"
+	KeyCaseSensitiveDirective = "@keyCaseSensitive@"
 	CaseSensitiveDirective    = "@caseSensitive@"
 	SourceDirective           = "@source@"
 	SortTextDirective         = "@sortText@"
@@ -27,6 +28,7 @@ type Directive struct {
 	KeyExists             map[string]bool
 	KeyDoesNotExist       map[string]bool
 	TimeLayout            string
+	KeyCaseSensitive      bool
 	CaseSensitive         bool
 	TimeLayouts           map[string]string
 	DataType              map[string]string
@@ -124,7 +126,7 @@ func (d *Directive) asCaseInsensitveMap(aMap map[string]string) map[string]strin
 	return result
 }
 
-func (d *Directive) ApplyCaseInsensitive() {
+func (d *Directive) ApplyKeyCaseInsensitive() {
 	if len(d.IndexBy) > 0 {
 		d.IndexBy = strings.Split(strings.ToUpper(strings.Join(d.IndexBy, ",")), ",")
 	}
@@ -192,6 +194,10 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 			continue
 		}
 
+		if k == KeyCaseSensitiveDirective {
+			d.KeyCaseSensitive = toolbox.AsBoolean(v)
+			continue
+		}
 		if k == CaseSensitiveDirective {
 			d.CaseSensitive = toolbox.AsBoolean(v)
 			continue
@@ -354,8 +360,9 @@ func (d *Directive) IsDirectiveValue(value string) bool {
 //NewDirective creates a new TestDirective for supplied path
 func NewDirective(dataPath DataPath) *Directive {
 	var result = &Directive{
-		DataPath:      dataPath,
-		CaseSensitive: true,
+		DataPath:         dataPath,
+		KeyCaseSensitive: true,
+		CaseSensitive:    true,
 	}
 	//inherit default time from first ancestor
 	dataPath.Each(func(path DataPath) bool {
@@ -428,8 +435,8 @@ func TimeLayout(key, format string) TestDirective {
 	return result.TimeLayout(key, format)
 }
 
-func (r TestDirective) CaseSensitive() TestDirective {
-	r[CaseSensitiveDirective] = true
+func (r TestDirective) KeyCaseSensitive() TestDirective {
+	r[KeyCaseSensitiveDirective] = true
 	return r
 }
 

@@ -239,7 +239,7 @@ func TestAssert_CaseInsensitive(t *testing.T) {
 			Description: "case sensitive",
 			Expected: `[
   {
-    "@caseSensitive@": false,
+    "@keyCaseSensitive@": false,
     "@indexBy@": [
       "ID"
     ],
@@ -1107,6 +1107,53 @@ func TestAssertCoalesceWithZero(t *testing.T) {
 			Actual: `[
 {
 	"tac": null
+}
+]`,
+			PassedCount: 0,
+			FailedCount: 1,
+		},
+	}
+
+	context := assertly.NewDefaultContext()
+	runUseCasesWithContext(t, useCases, context)
+}
+
+func TestAssertCaseSensitive(t *testing.T) {
+	var useCases = []*assertUseCase{
+
+		{
+			Description: "case insensitive",
+			Expected: `[
+		{
+			"@caseSensitive@": false
+		},
+  		{
+			"tac":"ABC"
+        }
+      ]
+`,
+			Actual: `[
+{
+	"tac": "abc"
+}
+]`,
+			PassedCount: 1,
+			FailedCount: 0,
+		},
+		{
+			Description: "case sensitive",
+			Expected: `[
+		{
+			"@caseSensitive@": true
+		},
+  		{
+			"tac":"ABC"
+        }
+      ]
+`,
+			Actual: `[
+{
+	"tac": "abc"
 }
 ]`,
 			PassedCount: 0,

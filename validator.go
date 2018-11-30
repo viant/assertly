@@ -293,6 +293,12 @@ func assertContains(isNegated bool, expected, actual string, path DataPath, cont
 
 func assertText(expected, actual string, path DataPath, context *Context, validation *Validation) error {
 
+	directive := path.Directive()
+	if directive != nil && !directive.CaseSensitive {
+		expected = strings.ToLower(expected)
+		actual = strings.ToLower(actual)
+	}
+
 	expected = strings.TrimSpace(expected)
 	if strings.HasSuffix(expected, "/") {
 		expected, isNegated := isNegated(expected)
@@ -508,18 +514,28 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	return nil
 }
 
-func asCaseInsensitiveSlice(aSlice []interface{}) []interface{} {
+func asKeyCaseInsensitiveSlice(aSlice []interface{}) []interface{} {
 	var result = make([]interface{}, 0)
 	for _, item := range aSlice {
-		result = append(result, asCaseInsensitiveMap(toolbox.AsMap(item)))
+		result = append(result, asKeyCaseInsensitiveMap(toolbox.AsMap(item)))
 	}
 	return result
 }
 
-func asCaseInsensitiveMap(aMap map[string]interface{}) map[string]interface{} {
+func asKeyCaseInsensitiveMap(aMap map[string]interface{}) map[string]interface{} {
 	var result = make(map[string]interface{})
 	for k, v := range aMap {
 		result[strings.ToUpper(k)] = v
+	}
+	return result
+}
+
+func asValueCaseInsensitiveSlice(aSlice []interface{}) []interface{} {
+	var result = make([]interface{}, 0)
+	for _, item := range aSlice {
+		aMap := toolbox.AsMap(item)
+		aMap[CaseSensitiveDirective] = false
+		result = append(result, aMap)
 	}
 	return result
 }
@@ -529,6 +545,12 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
 		return nil
 	}
+	if toolbox.IsMap(actualValue) { //given that pairs of key/value makes a map
+		if expectedMap, err := toolbox.ToMap(expected); err == nil {
+			return assertMap(expectedMap, actualValue, path, context, validation)
+		}
+	}
+
 	if !toolbox.IsSlice(actualValue) {
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
 		return nil
@@ -576,10 +598,15 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 
 		} else {
 
+			if !directive.KeyCaseSensitive {
+				expected = asKeyCaseInsensitiveSlice(expected)
+				actual = asKeyCaseInsensitiveSlice(actual)
+				directive.ApplyKeyCaseInsensitive()
+			}
+
 			if !directive.CaseSensitive {
-				expected = asCaseInsensitiveSlice(expected)
-				actual = asCaseInsensitiveSlice(actual)
-				directive.ApplyCaseInsensitive()
+				expected = asValueCaseInsensitiveSlice(expected)
+				actual = asValueCaseInsensitiveSlice(actual)
 			}
 
 			for i := 0; i < len(actual); i++ {

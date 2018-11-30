@@ -1,4 +1,7 @@
-## Nov 26 2018 - v0.2.2
+## Nov 30 2018 - v0.2.2
+    * Update assertSlice logic to account for key/value pairs as map validation
+    * Added keyCaseSensitive directive
+    * Chnage behaviour to caseSensitive directive to only apply to values
     * Added coalesceWithZero directive, patched 0 | 0.0 with nil validation
 
 ## Nov 26 2018 - v0.2.1
