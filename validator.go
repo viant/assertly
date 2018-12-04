@@ -181,10 +181,12 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 			actual = actualMap
 		}
 	}
+
 	if toolbox.IsMap(expected) {
 		return assertMap(toolbox.AsMap(expected), actual, path, context, validation)
 	} else if toolbox.IsSlice(expected) {
 		return assertSlice(toolbox.AsSlice(expected), actual, path, context, validation)
+
 	} else if expected == actual || reflect.DeepEqual(expected, actual) {
 		validation.PassedCount++
 		return nil

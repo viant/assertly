@@ -3,7 +3,7 @@
 [![Data structure testing library for Go.](https://goreportcard.com/badge/github.com/viant/assertly)](https://goreportcard.com/report/github.com/viant/assertly)
 [![GoDoc](https://godoc.org/github.com/viant/assertly?status.svg)](https://godoc.org/github.com/viant/assertly)
 
-This library is compatible with Go 1.8+
+This library is compatible with Go 1.10+
 
 Please refer to [`CHANGELOG.md`](CHANGELOG.md) if you encounter breaking changes.
 
