@@ -342,7 +342,7 @@ Directive is piece of information instructing validator to either convert data j
 -	AssertPathDirective             = "@assertPath@"
 
 
-## AssertPathDirective
+## Assert Path
 
 **@assertPath@** directive allows validation only specified path within given node, the following construct can be used:
 
