@@ -1327,3 +1327,67 @@ func TestAssertStructureWithSource(t *testing.T) {
 	runUseCasesWithContext(t, useCases, context)
 
 }
+
+func TestAssertWithAssertPath(t *testing.T) {
+	var useCases = []*assertUseCase{
+		{
+			Description: "data structure with assertPath directive",
+			Expected: `{
+	"@assertPath@key1.id":1,
+	"@assertPath@key2.id":2,
+	"@assertPath@key2.name":"name 33"
+}`,
+			Actual: `{
+  "key1": {
+    "id":1,
+	"seq":0,
+    "name":"name 1"
+  },
+  "key2": {
+    "id":2,
+	"seq":0,
+    "name":"name 22"
+  }
+}`,
+			PassedCount: 2,
+			FailedCount: 1,
+		},
+		{
+			Description: "data structure with assertPath directive and regular data",
+			Expected: `{
+	"@assertPath@":{
+		"key1.id":1,
+		"key2.id":2
+	},
+   "key3": {
+    "id":3,
+	"seq":3,
+    "name":"name 3"
+  }
+}`,
+			Actual: `{
+  "key1": {
+    "id":1,
+	"seq":0,
+    "name":"name 1"
+  },
+  "key2": {
+    "id":2,
+	"seq":0,
+    "name":"name 22"
+  },
+ "key3": {
+    "id":3,
+	"seq":0,
+    "name":"name 3"
+  }
+}`,
+			PassedCount: 4,
+			FailedCount: 1,
+		},
+	}
+	defaultDirective := assertly.NewDirective(assertly.NewDataPath(""))
+	context := assertly.NewContext(nil, assertly.NewDirectives(defaultDirective), nil)
+	runUseCasesWithContext(t, useCases, context)
+
+}

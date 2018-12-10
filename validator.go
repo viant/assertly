@@ -3,6 +3,7 @@ package assertly
 import (
 	"fmt"
 	"github.com/viant/toolbox"
+	"github.com/viant/toolbox/data"
 	"log"
 	"math"
 	"path"
@@ -116,7 +117,7 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 }
 
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
-
+	directive := NewDirective(path)
 	if expected == nil {
 		if actual == nil {
 			validation.PassedCount++
@@ -191,7 +192,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		validation.PassedCount++
 		return nil
 	}
-	directive := NewDirective(path)
+
 	expectedText := toolbox.AsString(expected)
 
 	if !context.StrictDatTypeCheck {
@@ -399,7 +400,6 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 			actualFloat = math.Round(actualFloat/unit) * unit
 		}
 	}
-
 	isEqual := expectedErr == nil && actualErr == nil && expectedFloat == actualFloat
 	if !isEqual {
 		if text, ok := expected.(string); ok {
@@ -420,6 +420,28 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 	}
 }
 
+func assertPathIfNeeded(directive *Directive, path DataPath, context *Context, validation *Validation, actual map[string]interface{}) error {
+	if len(directive.AssertPaths) > 0 {
+		actualMap := data.Map(actual)
+		for _, assertPath := range directive.AssertPaths {
+			keyPath := path.Key(assertPath.SubPath)
+			subPathActual, ok := actualMap.GetValue(assertPath.SubPath)
+			if !ok {
+				if assertPath.Expected == KeyDoesNotExistsDirective {
+					validation.PassedCount++
+				} else {
+					validation.AddFailure(NewFailure(path.Source(), keyPath.Path(), KeyDoesNotExistViolation, assertPath.Expected, actual))
+				}
+				continue
+			}
+			if err := assertValue(assertPath.Expected, subPathActual, keyPath, context, validation); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func assertMap(expected map[string]interface{}, actualValue interface{}, path DataPath, context *Context, validation *Validation) error {
 	if actualValue == nil {
 		if expected == nil {
@@ -430,12 +452,17 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		return nil
 	}
 	directive := NewDirective(path)
+
 	directive.mergeFrom(path.Match(context))
 	directive.ExtractDirectives(expected)
 	path.SetSource(directive.Source)
 	var actual = actualMap(expected, actualValue, path, directive, validation)
 	if actual == nil {
 		return nil
+	}
+
+	if err := assertPathIfNeeded(directive, path, context, validation, actual); err != nil {
+		return err
 	}
 	directive.ExtractDataTypes(actual)
 	if err := directive.Apply(actual); err != nil {

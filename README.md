@@ -328,17 +328,63 @@ var actual = `
 ## Directive
 
 Directive is piece of information instructing validator to either convert data just before validation takes place or to validate a date according to provided rules. 
--	KeyExistsDirective          = "@exists@"
--	KeyDoesNotExistsDirective   = "@!exists@"
--	TimeFormatDirective         = "@timeFormat@"
--	TimeLayoutDirective         = "@timeLayout@"
--	SwitchByDirective           = "@switchCaseBy@"
--	CastDataTypeDirective       = "@cast@"
--	IndexByDirective            = "@indexBy@"
--	CaseSensitiveDirective      = "@caseSensitive@"
--	KeyCaseSensitiveDirective = "@CaseSensitive@"
--   NumericPrecisionPoint       = "@numericPrecisionPoint@"
--   CoalesceWithZero            = "@coalesceWithZero@"
+-	KeyExistsDirective              = "@exists@"
+-	KeyDoesNotExistsDirective       = "@!exists@"
+-	TimeFormatDirective             = "@timeFormat@"
+-	TimeLayoutDirective             = "@timeLayout@"
+-	SwitchByDirective               = "@switchCaseBy@"
+-	CastDataTypeDirective           = "@cast@"
+-	IndexByDirective                = "@indexBy@"
+-	CaseSensitiveDirective          = "@caseSensitive@"
+-	KeyCaseSensitiveDirective       = "@CaseSensitive@"
+-	NumericPrecisionPointDirective  = "@numericPrecisionPoint@"
+-	CoalesceWithZeroDirective       = "@coalesceWithZero@"
+-	AssertPathDirective             = "@assertPath@"
+
+
+## AssertPathDirective
+
+**@assertPath@** directive allows validation only specified path within given node, the following construct can be used:
+
+
+- _directive prefixed_ 
+```json
+
+{
+    "@assertPath@Responses[0].Code":200,
+    "@assertPath@Responses[1].Code":200   
+}
+
+```
+
+- _directive with subpath and values map_
+@expected2
+```json
+{
+    "@assertPath@":{
+      "Responses[0].Code":200,
+      "Responses[1].Code":200
+      }   
+}
+```
+
+- _directive with the same data point validation_ 
+    
+
+```json
+{
+    "@assertPath@":[
+        {
+          "Responses[0].Code":200,
+          "Responses[0].Body":"/some fragment/"
+      },
+      {
+           "Responses[0].Body":"~/.+\\d{3}.+/"
+      }   
+  ]
+}
+```
+
 
 ### Index by
 

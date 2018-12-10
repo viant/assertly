@@ -128,3 +128,53 @@ func TestDirective_Add(t *testing.T) {
 	assert.EqualValues(t, []string{"case"}, target[SwitchByDirective])
 
 }
+
+func TestAssertPath_Directive(t *testing.T) {
+
+	expected := `[
+	{
+		"SubPath": "group1.field1",
+		"Expected": 1
+	},
+	{
+		"SubPath": "group1.field2",
+		"Expected": 2
+	},
+	{
+		"SubPath": "group1.field3",
+		"Expected": 3
+	}
+]
+`
+
+	{
+		directive := NewDirective(NewDataPath("/"))
+		var target = map[string]interface{}{
+			AssertPathDirective + "group1.field1": 1,
+			AssertPathDirective: []interface{}{
+				map[string]interface{}{
+					"group1.field2": 2,
+				},
+				map[string]interface{}{
+					"group1.field3": 3,
+				},
+			},
+		}
+		directive.ExtractDirectives(target)
+		AssertValues(t, expected, directive.AssertPaths)
+	}
+
+	{
+		directive := NewDirective(NewDataPath("/"))
+		var target = map[string]interface{}{
+			AssertPathDirective + "group1.field1": 1,
+			AssertPathDirective: map[string]interface{}{
+				"group1.field2": 2,
+				"group1.field3": 3,
+			},
+		}
+		directive.ExtractDirectives(target)
+		AssertValues(t, expected, directive.AssertPaths)
+	}
+
+}
