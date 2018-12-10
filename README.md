@@ -358,7 +358,7 @@ Directive is piece of information instructing validator to either convert data j
 ```
 
 - _directive with subpath and values map_
-@expected2
+
 ```json
 {
     "@assertPath@":{
