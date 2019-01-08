@@ -21,6 +21,7 @@ const (
 	NumericPrecisionPointDirective = "@numericPrecisionPoint@"
 	CoalesceWithZeroDirective      = "@coalesceWithZero@"
 	AssertPathDirective            = "@assertPath@"
+	LengthDirective                = "@length@"
 )
 
 type AssertPath struct {
@@ -38,6 +39,7 @@ type Directive struct {
 	CaseSensitive         bool
 	TimeLayouts           map[string]string
 	DataType              map[string]string
+	Lengths               map[string]int
 	SwitchBy              []string
 	CoalesceWithZero      bool
 	NumericPrecisionPoint int
@@ -184,6 +186,10 @@ func (d *Directive) addAssertPath(subpath string, expected interface{}) {
 func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 	var keyCount = len(aMap)
 	var directiveCount = 0
+
+	if len(d.Lengths) == 0 {
+		d.Lengths = make(map[string]int)
+	}
 	for k, v := range aMap {
 		if d.IsDirectiveKey(k) {
 			directiveCount++
@@ -249,6 +255,29 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 					d.addAssertPath(subPath, expcted)
 				}
 			}
+			continue
+		}
+
+		if strings.HasPrefix(k, LengthDirective) {
+			var key = strings.Replace(k, LengthDirective, "", 1)
+			d.Lengths[key] = toolbox.AsInt(v)
+			continue
+		} else if strings.HasPrefix(k, KeyExistsDirective) {
+			var key = strings.Replace(k, KeyExistsDirective, "", 1)
+			if toolbox.AsBoolean(v) {
+				d.AddKeyExists(key)
+			} else {
+				d.AddKeyDoesNotExist(key)
+			}
+			continue
+		} else if strings.HasPrefix(k, KeyDoesNotExistsDirective) {
+			var key = strings.Replace(k, KeyDoesNotExistsDirective, "", 1)
+			if toolbox.AsBoolean(v) {
+				d.AddKeyDoesNotExist(key)
+			} else {
+				d.AddKeyExists(key)
+			}
+			continue
 		}
 
 		if text, ok := v.(string); ok {
@@ -270,6 +299,7 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 				}
 				continue
 			}
+
 			if strings.HasPrefix(k, TimeLayoutDirective) {
 				var key = strings.Replace(k, TimeLayoutDirective, "", 1)
 				if key == "" {
@@ -393,15 +423,26 @@ func (d *Directive) IsDirectiveValue(value string) bool {
 }
 
 //NewDirective creates a new TestDirective for supplied path
-func NewDirective(dataPath DataPath) *Directive {
+func NewDirective(path DataPath) *Directive {
+
+	dataPath, ok := path.(*dataPath)
+	if ok {
+		if dataPath.directive != nil {
+			return dataPath.directive
+		}
+	}
+
 	var result = &Directive{
-		DataPath:         dataPath,
+		DataPath:         path,
 		KeyCaseSensitive: true,
 		CaseSensitive:    true,
 		AssertPaths:      make([]*AssertPath, 0),
 	}
+	if dataPath != nil {
+		dataPath.directive = result
+	}
 	//inherit default time from first ancestor
-	dataPath.Each(func(path DataPath) bool {
+	path.Each(func(path DataPath) bool {
 		directive := path.Directive()
 		if directive != nil {
 			if directive.TimeLayout != "" {
@@ -413,7 +454,7 @@ func NewDirective(dataPath DataPath) *Directive {
 	})
 
 	//inherit default numeric precision point
-	dataPath.Each(func(path DataPath) bool {
+	path.Each(func(path DataPath) bool {
 		directive := path.Directive()
 		if directive != nil {
 			if directive.NumericPrecisionPoint != 0 {
@@ -425,7 +466,7 @@ func NewDirective(dataPath DataPath) *Directive {
 	})
 
 	//inherit default numeric precision point
-	dataPath.Each(func(path DataPath) bool {
+	path.Each(func(path DataPath) bool {
 		directive := path.Directive()
 		if directive != nil {
 			if directive.CoalesceWithZero {

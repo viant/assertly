@@ -340,6 +340,7 @@ Directive is piece of information instructing validator to either convert data j
 -	NumericPrecisionPointDirective  = "@numericPrecisionPoint@"
 -	CoalesceWithZeroDirective       = "@coalesceWithZero@"
 -	AssertPathDirective             = "@assertPath@"
+-	LengthDirective                 = "@length@"
 
 
 ## Assert Path
@@ -666,6 +667,29 @@ NumericPrecisionPoint controls numeric precision validation comparision
 ## CoalesceWithZero
 
 Coalesce with zero directive sets all nil numeric values to zero 
+
+## Length Directive
+
+Checks length or map or slice
+
+
+
+**Example**
+
+\#expected 
+ ```json
+{
+ "@length@k1":3
+}
+```
+
+\#actual
+```json
+   {
+       "k1":[1,2,3]
+   }
+```
+
 
 ## Source directive
 

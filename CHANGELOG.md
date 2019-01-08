@@ -1,4 +1,8 @@
 ## Nov 30 2018 - v0.3.0
+    * Added @length@ directive
+    * Patched map level directives
+
+## Nov 30 2018 - v0.3.0
     * Added assertPath directive
 
 ## Nov 30 2018 - v0.2.2

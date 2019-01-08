@@ -93,12 +93,16 @@ func FormatMessage(failure *Failure) string {
 	switch failure.Reason {
 	case MissingEntryViolation:
 		return fmt.Sprintf("entry for %v was missing, expected: %v, actual keys: %v", failure.Args[0], failure.Expected, failure.Actual)
+	case MissingItemViolation:
+		return fmt.Sprintf("item was missing, expected: %v, actual:  %v", failure.Expected, failure.Actual)
+	case ItemMismatchViolation:
+		return fmt.Sprintf("item was mismatched, key1: %v, key2: %v", failure.Expected, failure.Actual)
 	case IncompatibleDataTypeViolation:
 		return fmt.Sprintf("actual was %T, but expected %T(%v)", failure.Actual, failure.Expected, failure.Expected)
 	case KeyExistsViolation:
-		fmt.Sprintf("key '%v' should exists", failure.Expected)
+		return fmt.Sprintf("key '%v' should exists", failure.Expected)
 	case KeyDoesNotExistViolation:
-		fmt.Sprintf("'%v' should not exists", failure.Expected)
+		return fmt.Sprintf("'%v' should not exists", failure.Expected)
 	case EqualViolation:
 		return fmt.Sprintf("actual(%T): '%v' was not equal (%T) '%v'", failure.Actual, failure.Actual, failure.Expected, failure.Expected)
 	case NotEqualViolation:

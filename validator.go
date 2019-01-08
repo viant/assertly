@@ -17,6 +17,8 @@ import (
 
 const (
 	MissingEntryViolation         = "entry was missing"
+	MissingItemViolation          = "item was missing"
+	ItemMismatchViolation         = "item was mismatched"
 	IncompatibleDataTypeViolation = "data type was incompatible"
 	KeyExistsViolation            = "key should exist"
 	KeyDoesNotExistViolation      = "key should not exist"
@@ -173,12 +175,12 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		var converter = toolbox.NewColumnConverter(dateLayout)
 		if toolbox.IsStruct(expected) {
 			var expectedMap = make(map[string]interface{})
-			converter.AssignConverted(&expectedMap, expected)
+			_ = converter.AssignConverted(&expectedMap, expected)
 			expected = expectedMap
 		}
 		if toolbox.IsStruct(actual) {
 			var actualMap = make(map[string]interface{})
-			converter.AssignConverted(&actualMap, actual)
+			_ = converter.AssignConverted(&actualMap, actual)
 			actual = actualMap
 		}
 	}
@@ -400,6 +402,7 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 			actualFloat = math.Round(actualFloat/unit) * unit
 		}
 	}
+
 	isEqual := expectedErr == nil && actualErr == nil && expectedFloat == actualFloat
 	if !isEqual {
 		if text, ok := expected.(string); ok {
@@ -455,6 +458,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 
 	directive.mergeFrom(path.Match(context))
 	directive.ExtractDirectives(expected)
+
 	path.SetSource(directive.Source)
 	var actual = actualMap(expected, actualValue, path, directive, validation)
 	if actual == nil {
@@ -497,6 +501,29 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	if len(directive.IndexBy) == 0 {
 		indexable = false
 	}
+
+	if len(directive.Lengths) > 0 {
+		for key, expectedLength := range directive.Lengths {
+			value, ok := actual[key]
+			keyPath := path.Key(key)
+			if !ok {
+				validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), LengthViolation, expectedLength, value))
+				continue
+			}
+			actualLength := 0
+			if toolbox.IsSlice(value) {
+				actualLength = len(toolbox.AsSlice(value))
+			} else if toolbox.IsMap(value) {
+				actualLength = len(toolbox.AsMap(value))
+			}
+			if actualLength == expectedLength {
+				validation.PassedCount++
+				continue
+			}
+			validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), LengthViolation, expectedLength, actualLength))
+		}
+	}
+
 	for expectedKey, expectedValue := range expected {
 		val := expected[expectedKey]
 		if val == nil || toolbox.AsString(val) == "" {
@@ -658,6 +685,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 
 			shouldIndex := len(directive.IndexBy) > 0
 			if shouldIndex {
+
 				expectedMap := indexSliceBy(expected, directive.IndexBy...)
 				actualMap := indexSliceBy(actual, directive.IndexBy...)
 				return assertMap(expectedMap, actualMap, path, context, validation)

@@ -63,6 +63,7 @@ func TestAssertMap(t *testing.T) {
 			PassedCount: 1,
 			FailedCount: 1,
 		},
+
 		{
 			Description: "key does not exist test",
 			Expected: map[string]interface{}{
@@ -227,6 +228,48 @@ func TestAssertMap(t *testing.T) {
 			HasError:    false,
 			PassedCount: 3,
 			FailedCount: 0,
+		},
+
+		{
+			Description: "length directive use case",
+			Expected: map[string]interface{}{
+				"@length@key1": 3,
+				"f2":           2,
+			},
+			Actual: map[string]interface{}{
+				"key1": []interface{}{1, 2, 3},
+				"f2":   2,
+			},
+			HasError:    false,
+			PassedCount: 2,
+			FailedCount: 0,
+		},
+		{
+			Description: "length directive failure use case",
+			Expected: map[string]interface{}{
+				"@length@key1": 3,
+				"f2":           2,
+			},
+			Actual: map[string]interface{}{
+				"key1": []interface{}{1, 2, 3, 4},
+				"f2":   2,
+			},
+			HasError:    false,
+			PassedCount: 1,
+			FailedCount: 1,
+		},
+		{
+			Description: "length directive missing failure use case",
+			Expected: map[string]interface{}{
+				"@length@key1": 3,
+				"f2":           2,
+			},
+			Actual: map[string]interface{}{
+				"f2": 2,
+			},
+			HasError:    false,
+			PassedCount: 1,
+			FailedCount: 1,
 		},
 	}
 	runUseCases(t, useCases)
@@ -1383,6 +1426,35 @@ func TestAssertWithAssertPath(t *testing.T) {
   }
 }`,
 			PassedCount: 4,
+			FailedCount: 1,
+		},
+	}
+	defaultDirective := assertly.NewDirective(assertly.NewDataPath(""))
+	context := assertly.NewContext(nil, assertly.NewDirectives(defaultDirective), nil)
+	runUseCasesWithContext(t, useCases, context)
+
+}
+
+func Test_Data(t *testing.T) {
+	var useCases = []*assertUseCase{
+		{
+			Description: "data structure with assertPath directive",
+			Expected: `[{"@indexBy@": ["email"]},
+			{
+			"@timeLayout@": "2006-01-02 15:04:05.000",
+			"dateOfBirth": "2001-01-01",
+			"email": "xyz@wp.pl",
+			"name": "abc"
+			}
+		]`,
+			Actual: `[
+		{
+			"dateOfBirth": "2001-01-01",
+			"email": "abc@wp.pl",
+			"name": "abc"
+		}
+	]`,
+			PassedCount: 2,
 			FailedCount: 1,
 		},
 	}
