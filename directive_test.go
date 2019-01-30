@@ -51,6 +51,18 @@ func TestDirective_ExtractExpected(t *testing.T) {
 		assert.True(t, directive.KeyDoesNotExist["k1"])
 
 	}
+
+	{ //test key exists, does not exist directive
+		var source = map[string]interface{}{
+			KeyDoesNotExistsDirective + "k001": true,
+			KeyExistsDirective + "k002":        true,
+		}
+		directive.ExtractDirectives(source)
+		assert.True(t, directive.KeyExists["k2"])
+		assert.True(t, directive.KeyDoesNotExist["k1"])
+
+	}
+
 	{ //test key time format
 		var source = map[string]interface{}{
 			TimeFormatDirective + "k2": "yyyy-MM-dd",

@@ -395,7 +395,6 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 			casted, err = toolbox.ToFloat(val)
 		case "int":
 			casted, err = toolbox.ToInt(val)
-
 		case "bool":
 			casted = toolbox.AsBoolean(val)
 		default:
@@ -404,7 +403,7 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 		if toolbox.IsNilPointerError(err) {
 			casted = nil
 		} else if err != nil {
-			return err
+			casted = val
 		}
 		aMap[key] = casted
 	}

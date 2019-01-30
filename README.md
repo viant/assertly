@@ -123,7 +123,7 @@ func Test_XX(t *testing.T) {
           "QueueFlashCount": 1024,
           "FlushFrequencyInMs": 500
         },
-        "type2": "@exists@" 
+        "@exists@type2": true 
       }
     }`,
     
