@@ -1,4 +1,5 @@
-## Jan 28 2019 - v0.4.0
+## Jan 30 2019 - v0.4.1
+    * Patch assertPath directive
     * Remove cast error login, in case of error original value is used
     
 ## Nov 30 2018 - v0.3.0

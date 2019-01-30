@@ -484,8 +484,6 @@ func TestAssertJSONSlice(t *testing.T) {
 		{
 			Description: "JSON slice test",
 			Expected: `[1,2,3]
-
-
 [3,4]`,
 			Actual: `[1,2,3]
 [3,5]`,
@@ -1402,6 +1400,7 @@ func TestAssertWithAssertPath(t *testing.T) {
 		"key1.id":1,
 		"key2.id":2
 	},
+
    "key3": {
     "id":3,
 	"seq":3,
@@ -1435,31 +1434,3 @@ func TestAssertWithAssertPath(t *testing.T) {
 
 }
 
-func Test_Data(t *testing.T) {
-	var useCases = []*assertUseCase{
-		{
-			Description: "data structure with assertPath directive",
-			Expected: `[{"@indexBy@": ["email"]},
-			{
-			"@timeLayout@": "2006-01-02 15:04:05.000",
-			"dateOfBirth": "2001-01-01",
-			"email": "xyz@wp.pl",
-			"name": "abc"
-			}
-		]`,
-			Actual: `[
-		{
-			"dateOfBirth": "2001-01-01",
-			"email": "abc@wp.pl",
-			"name": "abc"
-		}
-	]`,
-			PassedCount: 2,
-			FailedCount: 1,
-		},
-	}
-	defaultDirective := assertly.NewDirective(assertly.NewDataPath(""))
-	context := assertly.NewContext(nil, assertly.NewDirectives(defaultDirective), nil)
-	runUseCasesWithContext(t, useCases, context)
-
-}
