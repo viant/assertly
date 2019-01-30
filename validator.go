@@ -423,23 +423,20 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 	}
 }
 
-
-
 func assertPathIfNeeded(directive *Directive, path DataPath, context *Context, validation *Validation, actual map[string]interface{}) error {
 	if len(directive.AssertPaths) > 0 {
 		actualMap := data.Map(actual)
 		for _, assertPath := range directive.AssertPaths {
 			keyPath := path.Key(assertPath.SubPath)
 			subPathActual, ok := actualMap.GetValue(assertPath.SubPath)
-			if !ok {
+			if ! ok {
 				if assertPath.Expected == KeyDoesNotExistsDirective {
 					validation.PassedCount++
 				} else {
-					validation.AddFailure(NewFailure(path.Source(), keyPath.Path(), KeyDoesNotExistViolation, assertPath.Expected, actual))
+					validation.AddFailure(NewFailure(path.Source(), keyPath.Path(), KeyExistsViolation, assertPath.Expected, actual))
 				}
 				continue
 			}
-
 
 			if err := assertValue(assertPath.Expected, subPathActual, keyPath, context, validation); err != nil {
 				return err
@@ -463,14 +460,12 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 
 	directive.ExtractDirectives(expected)
 
-
 	path.SetSource(directive.Source)
 
 	var actual = actualMap(expected, actualValue, path, directive, validation)
 	if actual == nil {
 		return nil
 	}
-
 
 	if err := assertPathIfNeeded(directive, path, context, validation, actual); err != nil {
 		return err
@@ -630,7 +625,6 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 
 	directive := path.Match(context)
 
-
 	if toolbox.IsMap(expected[0]) || toolbox.IsStruct(expected[0]) {
 		first := toolbox.AsMap(expected[0])
 		if directive.ExtractDirectives(first) {
@@ -673,13 +667,10 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 				actual = asValueCaseInsensitiveSlice(actual)
 			}
 
-
-
 			for i := 0; i < len(actual); i++ {
 				var actualMap = toolbox.AsMap(actual[i])
 				directive.ExtractDataTypes(actualMap)
 			}
-
 
 			//add directive to expected
 			for i := 0; i < len(expected); i++ {
