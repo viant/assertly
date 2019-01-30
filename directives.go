@@ -9,7 +9,6 @@ type Directives struct {
 func (d *Directives) Match(path DataPath) *Directive {
 	var result = NewDirective(path)
 	result.mergeFrom(d.Directive)
-
 	if matched, ok := d.PathDirectives[path.MatchingPath()]; ok {
 		result.mergeFrom(matched)
 	}

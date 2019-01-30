@@ -50,10 +50,17 @@ type Directive struct {
 }
 
 func (d *Directive) mergeFrom(source *Directive) {
+	if source == nil {
+		return
+	}
 	mergeTextMap(source.DataType, &d.DataType)
 	mergeTextMap(source.TimeLayouts, &d.TimeLayouts)
 	mergeBoolMap(source.KeyExists, &d.KeyExists)
 	mergeBoolMap(source.KeyDoesNotExist, &d.KeyDoesNotExist)
+	d.CoalesceWithZero = source.CoalesceWithZero
+	d.CaseSensitive = source.CaseSensitive
+	d.KeyCaseSensitive = source.KeyCaseSensitive
+	d.TimeLayouts = source.TimeLayouts
 	if d.MatchingPath() == "" && len(d.IndexBy) == 0 {
 		d.IndexBy = source.IndexBy
 	}
@@ -423,8 +430,8 @@ func (d *Directive) IsDirectiveValue(value string) bool {
 
 //NewDirective creates a new TestDirective for supplied path
 func NewDirective(path DataPath) *Directive {
-
 	dataPath, ok := path.(*dataPath)
+
 	if ok {
 		if dataPath.directive != nil {
 			return dataPath.directive
