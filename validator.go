@@ -69,7 +69,7 @@ func getPredicate(input interface{}) toolbox.Predicate {
 }
 
 func expandExpectedText(text string, path DataPath, context *Context) (interface{}, error) {
-	if toolbox.IsCompleteJSON(text) {
+	if toolbox.IsNewLineDelimitedJSON(text) || toolbox.IsCompleteJSON(text) {
 		return asDataStructure(text), nil
 	}
 	if context.Evaluator.HasMacro(text) {
@@ -146,7 +146,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	if predicate == nil {
 		switch val := actual.(type) {
 		case string:
-			if toolbox.IsCompleteJSON(val) {
+			if toolbox.IsNewLineDelimitedJSON(val) || toolbox.IsCompleteJSON(val) {
 				actual = asDataStructure(val)
 			}
 		case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
@@ -423,6 +423,8 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 	}
 }
 
+
+
 func assertPathIfNeeded(directive *Directive, path DataPath, context *Context, validation *Validation, actual map[string]interface{}) error {
 	if len(directive.AssertPaths) > 0 {
 		actualMap := data.Map(actual)
@@ -437,6 +439,8 @@ func assertPathIfNeeded(directive *Directive, path DataPath, context *Context, v
 				}
 				continue
 			}
+
+
 			if err := assertValue(assertPath.Expected, subPathActual, keyPath, context, validation); err != nil {
 				return err
 			}
@@ -455,15 +459,18 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		return nil
 	}
 	directive := NewDirective(path)
-
 	directive.mergeFrom(path.Match(context))
+
 	directive.ExtractDirectives(expected)
 
+
 	path.SetSource(directive.Source)
+
 	var actual = actualMap(expected, actualValue, path, directive, validation)
 	if actual == nil {
 		return nil
 	}
+
 
 	if err := assertPathIfNeeded(directive, path, context, validation, actual); err != nil {
 		return err
@@ -602,11 +609,11 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 		return nil
 	}
 	if toolbox.IsMap(actualValue) { //given that pairs of key/value makes a map
-		if expectedMap, err := toolbox.ToMap(expected); err == nil {
+		expectedMap, err := toolbox.ToMap(expected);
+		if err == nil {
 			return assertMap(expectedMap, actualValue, path, context, validation)
 		}
 	}
-
 	if !toolbox.IsSlice(actualValue) {
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), IncompatibleDataTypeViolation, expected, actualValue))
 		return nil
@@ -620,14 +627,15 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), LengthViolation, len(expected), len(actual)))
 		return nil
 	}
+
 	directive := path.Match(context)
+
 
 	if toolbox.IsMap(expected[0]) || toolbox.IsStruct(expected[0]) {
 		first := toolbox.AsMap(expected[0])
 		if directive.ExtractDirectives(first) {
 			expected = expected[1:]
 		}
-
 		if directive.SortText {
 			var expectedSlice = []string{}
 			toolbox.ProcessSlice(expected, func(item interface{}) bool {
@@ -665,10 +673,13 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 				actual = asValueCaseInsensitiveSlice(actual)
 			}
 
+
+
 			for i := 0; i < len(actual); i++ {
 				var actualMap = toolbox.AsMap(actual[i])
 				directive.ExtractDataTypes(actualMap)
 			}
+
 
 			//add directive to expected
 			for i := 0; i < len(expected); i++ {
