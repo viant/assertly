@@ -9,6 +9,7 @@ var ValueProviderRegistry = toolbox.NewValueProviderRegistry()
 
 func init() {
 	ValueProviderRegistry.Register("nil", toolbox.NewNilValueProvider())
+	ValueProviderRegistry.Register("empty", toolbox.NewConstValueProvider(""))
 	ValueProviderRegistry.Register("env", toolbox.NewEnvValueProvider())
 	ValueProviderRegistry.Register("cast", toolbox.NewCastedValueProvider())
 	ValueProviderRegistry.Register("timediff", toolbox.NewTimeDiffProvider())
