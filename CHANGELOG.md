@@ -1,3 +1,6 @@
+## Feb 10 2019 - v0.4.2
+    * Added empty value provider: <ds:empty>
+
 ## Jan 30 2019 - v0.4.1
     * Patch assertPath directive
     * Remove cast error login, in case of error original value is used
