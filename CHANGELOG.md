@@ -1,4 +1,4 @@
-## Feb 10 2019 - v0.4.3
+## Feb 12 2019 - v0.4.3
     * Patched @numericPrecisionPoint@ with zero value
 
 ## Feb 10 2019 - v0.4.2
