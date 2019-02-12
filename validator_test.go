@@ -1109,6 +1109,43 @@ func TestAssertNumericPrecission(t *testing.T) {
 			PassedCount: 1,
 			FailedCount: 0,
 		},
+
+		{
+			Description: "data structure with 0 numericPrecisionPoint",
+			Expected: `{
+				"@numericPrecisionPoint@":"0",
+				"value":425147
+        }`,
+			Actual: `{
+	"value": 425147.00000000006
+}`,
+			PassedCount: 1,
+			FailedCount: 0,
+		},
+		{
+			Description: "data text expected text float and with 0 numericPrecisionPoint",
+			Expected: `{
+				"@numericPrecisionPoint@":"0",
+				"value": "425147"
+        }`,
+			Actual: `{
+	"value": 425147.00000000006
+}`,
+			PassedCount: 1,
+			FailedCount: 0,
+		},
+		{
+			Description: "data text expected  and actual text float and with 0 numericPrecisionPoint",
+			Expected: `{
+				"@numericPrecisionPoint@":"0",
+				"value": "425147"
+       }`,
+			Actual: `{
+	"value": "425147.00000000006"
+}`,
+			PassedCount: 1,
+			FailedCount: 0,
+		},
 	}
 
 	context := assertly.NewDefaultContext()
@@ -1433,4 +1470,3 @@ func TestAssertWithAssertPath(t *testing.T) {
 	runUseCasesWithContext(t, useCases, context)
 
 }
-

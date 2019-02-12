@@ -53,12 +53,12 @@ func (p *dataPath) Index(index int) DataPath {
 }
 
 func (p *dataPath) Key(field string) DataPath {
-	keyPath:= &dataPath{
-		key:       field,
-		parent:    p,
+	keyPath := &dataPath{
+		key:    field,
+		parent: p,
 	}
 	keyDirective := NewDirective(keyPath)
-	keyPath.directive =keyDirective
+	keyPath.directive = keyDirective
 	keyDirective.mergeFrom(p.directive)
 	return keyPath
 }

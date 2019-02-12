@@ -396,7 +396,7 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 	}
 	if directive != nil {
 		precisionPoint := float64(directive.NumericPrecisionPoint)
-		if expectedErr == nil && actualErr == nil && precisionPoint > 0 {
+		if expectedErr == nil && actualErr == nil && precisionPoint >= 0 {
 			unit := 1 / math.Pow(10, precisionPoint)
 			expectedFloat = math.Round(expectedFloat/unit) * unit
 			actualFloat = math.Round(actualFloat/unit) * unit
@@ -429,7 +429,7 @@ func assertPathIfNeeded(directive *Directive, path DataPath, context *Context, v
 		for _, assertPath := range directive.AssertPaths {
 			keyPath := path.Key(assertPath.SubPath)
 			subPathActual, ok := actualMap.GetValue(assertPath.SubPath)
-			if ! ok {
+			if !ok {
 				if assertPath.Expected == KeyDoesNotExistsDirective {
 					validation.PassedCount++
 				} else {
@@ -604,7 +604,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 		return nil
 	}
 	if toolbox.IsMap(actualValue) { //given that pairs of key/value makes a map
-		expectedMap, err := toolbox.ToMap(expected);
+		expectedMap, err := toolbox.ToMap(expected)
 		if err == nil {
 			return assertMap(expectedMap, actualValue, path, context, validation)
 		}
