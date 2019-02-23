@@ -1,4 +1,4 @@
-## Feb 12 2019 - v0.4.4
+## Feb 23 2019 - v0.4.4
     * Added limit to available keys
 
 ## Feb 12 2019 - v0.4.3
