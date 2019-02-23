@@ -562,7 +562,11 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 
 		if !ok {
 			key := "key:" + expectedKey
-			validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), MissingEntryViolation, expectedValue, toolbox.MapKeysToStringSlice(actual), key))
+			available := toolbox.MapKeysToStringSlice(actual)
+			if len(available) > 32 {
+				available = append(available[0:16], "...")
+			}
+			validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), MissingEntryViolation, expectedValue, available, key))
 			continue
 		}
 		if err := assertValue(expectedValue, actualValue, keyPath, context, validation); err != nil {

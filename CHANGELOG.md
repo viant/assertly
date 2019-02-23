@@ -1,3 +1,6 @@
+## Feb 12 2019 - v0.4.4
+    * Added limit to available keys
+
 ## Feb 12 2019 - v0.4.3
     * Patched @numericPrecisionPoint@ with zero value
 
