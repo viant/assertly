@@ -1,3 +1,6 @@
+## April 2 2019 - v0.4.5
+    * Updated multi line JSON handling 
+    
 ## Feb 23 2019 - v0.4.4
     * Added limit to available keys
 
