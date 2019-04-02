@@ -9,7 +9,7 @@ import (
 func asDataStructure(candidate string) interface{} {
 
 	if isMultiline(candidate) {
-		lines := strings.Split(candidate, "\n")
+		lines := strings.Split(strings.TrimSpace(candidate), "\n")
 		if toolbox.IsCompleteJSON(lines[0]) && toolbox.IsCompleteJSON(lines[len(lines)-1]) {
 			var result = make([]interface{}, 0)
 			for _, line := range lines {
