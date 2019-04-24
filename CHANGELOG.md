@@ -1,3 +1,6 @@
+## April 23 2019 - v0.4.6
+    * Updated keysValue for selector returing a map
+
 ## April 2 2019 - v0.4.5
     * Updated multi line JSON handling 
     

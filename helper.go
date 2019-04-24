@@ -79,7 +79,14 @@ func keysValue(aMap data.Map, keys ...string) string {
 		if !ok {
 			value = ""
 		}
-		result += toolbox.AsString(value)
+		if value != nil && toolbox.IsMap(value) {
+			valueMap := toolbox.AsMap(value)
+			for k := range valueMap {
+				result += k
+			}
+		} else {
+			result += toolbox.AsString(value)
+		}
 	}
 	return result
 }

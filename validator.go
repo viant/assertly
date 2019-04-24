@@ -357,7 +357,7 @@ func assertInt(expected, actual interface{}, path DataPath, context *Context, va
 	directive := path.Directive()
 	expectedInt, actualErr := toolbox.ToInt(expected)
 	if actualErr != nil {
-		assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
+		_ = assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
 		return
 	}
 	actualInt, actualErr := toolbox.ToInt(actual)
