@@ -1,6 +1,7 @@
-## April 23 2019 - v0.4.7
+## April 23 2019 - v0.4.8
     * patched time validation with custom time format
-
+    * patched field level time layout
+    
 ## April 23 2019 - v0.4.6
     * Updated keysValue for selector returing a map
 
