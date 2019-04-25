@@ -85,7 +85,6 @@ func expandExpectedText(text string, path DataPath, context *Context) (interface
 	return text, nil
 }
 
-
 func assertTime(expected *time.Time, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
 	dateLayout := path.Match(context).DefaultTimeLayout()
 	actualTime, err := toolbox.ToTime(actual, dateLayout)
@@ -115,8 +114,8 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 			return nil
 		}
 
-		expectedText := actualTime.Format(dateLayout)
-		actualText := expected.Format(dateLayout)
+		expectedText := expected.Format(dateLayout)
+		actualText := actualTime.Format(dateLayout)
 		if expectedText == actualText {
 			validation.PassedCount++
 			return nil
@@ -465,9 +464,9 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		validation.AddFailure(NewFailure(path.Source(), path.Path(), ValueWasNil, nil, expected))
 		return nil
 	}
+
 	directive := NewDirective(path)
 	directive.mergeFrom(path.Match(context))
-
 	directive.ExtractDirectives(expected)
 
 	path.SetSource(directive.Source)

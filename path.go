@@ -57,8 +57,14 @@ func (p *dataPath) Key(field string) DataPath {
 		key:    field,
 		parent: p,
 	}
+
 	keyDirective := NewDirective(keyPath)
 	keyPath.directive = keyDirective
+	if len(p.directive.TimeLayouts) > 0 {
+		if timeLayout, ok := p.directive.TimeLayouts[field]; ok {
+			keyPath.directive.TimeLayout = timeLayout
+		}
+	}
 	keyDirective.mergeFrom(p.directive)
 	return keyPath
 }
