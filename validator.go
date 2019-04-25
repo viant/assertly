@@ -85,6 +85,7 @@ func expandExpectedText(text string, path DataPath, context *Context) (interface
 	return text, nil
 }
 
+
 func assertTime(expected *time.Time, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
 	dateLayout := path.Match(context).DefaultTimeLayout()
 	actualTime, err := toolbox.ToTime(actual, dateLayout)
@@ -113,6 +114,14 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 			validation.PassedCount++
 			return nil
 		}
+
+		expectedText := actualTime.Format(dateLayout)
+		actualText := expected.Format(dateLayout)
+		if expectedText == actualText {
+			validation.PassedCount++
+			return nil
+		}
+
 	}
 	validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
 	return nil
