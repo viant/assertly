@@ -585,6 +585,31 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	return nil
 }
 
+func asStrictKeysCheckSlice(eSlice []interface{}, aSlice []interface{}) []interface{} {
+	actualKeys := make(map[string]bool)
+	for _, aItem := range aSlice {
+		for k, _ := range toolbox.AsMap(aItem) {
+			if !actualKeys[k] {
+				actualKeys[k] = true
+			}
+		}
+	}
+	var result = make([]interface{}, 0)
+	for _, eItem := range eSlice {
+		result = append(result, asStrictKeysCheckMap(toolbox.AsMap(eItem), actualKeys))
+	}
+	return result
+}
+
+func asStrictKeysCheckMap(eItemMap map[string]interface{}, aKeys map[string]bool) map[string]interface{} {
+	for aKey, _ := range aKeys {
+		if eItemMap[aKey] == nil {
+			eItemMap[aKey] = "NILDATA"
+		}
+	}
+	return eItemMap
+}
+
 func asKeyCaseInsensitiveSlice(aSlice []interface{}) []interface{} {
 	var result = make([]interface{}, 0)
 	for _, item := range aSlice {
@@ -668,6 +693,10 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 			}
 
 		} else {
+
+			if directive.StrictKeysCheck {
+				expected = asStrictKeysCheckSlice(expected, actual)
+			}
 
 			if !directive.KeyCaseSensitive {
 				expected = asKeyCaseInsensitiveSlice(expected)
