@@ -548,7 +548,12 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 			validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), LengthViolation, expectedLength, actualLength))
 		}
 	}
-	checkedKeys := getCheckedKeys(directive, actual, expected)
+	var checkedKeys map[string]bool
+	if directive.StrictMapCheck {
+		checkedKeys = getKeys(expected, actual)
+	} else {
+		checkedKeys = getKeys(expected)
+	}
 
 	for expectedKey, _ := range checkedKeys {
 		expectedValue := expected[expectedKey]
@@ -598,17 +603,14 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	return nil
 }
 
-func getCheckedKeys(directive *Directive, actual map[string]interface{}, expected map[string]interface{}) map[string]bool {
-	checkedKeys := make(map[string]bool, 0)
-	if directive.StrictMapCheck {
-		for valueKey, _ := range actual {
-			checkedKeys[valueKey] = true
+func getKeys(mapList ...map[string]interface{}) map[string]bool {
+	result := make(map[string]bool, 0)
+	for _, mapElement := range mapList {
+		for key, _ := range mapElement {
+			result[key] = true
 		}
 	}
-	for expectedKey, _ := range expected {
-		checkedKeys[expectedKey] = true
-	}
-	return checkedKeys
+	return result
 }
 
 func asKeyCaseInsensitiveSlice(aSlice []interface{}) []interface{} {
