@@ -127,14 +127,17 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 }
 
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
+
 	directive := NewDirective(path)
 	if expected == nil {
 		if actual == nil {
 			validation.PassedCount++
 			return nil
 		}
-		validation.AddFailure(NewFailure(path.Source(), path.Path(), NotEqualViolation, expected, actual))
-		return
+		if !directive.StrictMapCheck {
+			validation.AddFailure(NewFailure(path.Source(), path.Path(), NotEqualViolation, expected, actual))
+			return
+		}
 	}
 
 	switch val := expected.(type) {
@@ -363,11 +366,17 @@ func actualMap(expected, actualValue interface{}, path DataPath, directive *Dire
 
 func assertInt(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
 	directive := path.Directive()
-	expectedInt, actualErr := toolbox.ToInt(expected)
-	if actualErr != nil {
+	expectedInt, expectedErr := toolbox.ToInt(expected)
+	if expectedErr != nil && !toolbox.IsNilPointerError(expectedErr) {
 		_ = assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
 		return
 	}
+	if toolbox.IsNilPointerError(expectedErr) && directive.CoalesceWithZero && directive.StrictMapCheck {
+		expectedErr = nil
+		expectedInt = 0
+		expected = 0
+	}
+
 	actualInt, actualErr := toolbox.ToInt(actual)
 
 	if toolbox.IsNilPointerError(actualErr) {
@@ -394,6 +403,11 @@ func assertInt(expected, actual interface{}, path DataPath, context *Context, va
 func assertFloat(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
 	directive := path.Directive()
 	expectedFloat, expectedErr := toolbox.ToFloat(expected)
+	if toolbox.IsNilPointerError(expectedErr) && directive.CoalesceWithZero && directive.StrictMapCheck {
+		expectedErr = nil
+		expectedFloat = 0
+		expected = 0
+	}
 	actualFloat, actualErr := toolbox.ToFloat(actual)
 
 	if toolbox.IsNilPointerError(actualErr) {
@@ -534,12 +548,11 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 			validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), LengthViolation, expectedLength, actualLength))
 		}
 	}
+	checkedKeys := getCheckedKeys(directive, actual, expected)
 
-	for expectedKey, expectedValue := range expected {
-		val := expected[expectedKey]
-		if val == nil || toolbox.AsString(val) == "" {
-			continue
-		}
+	for expectedKey, _ := range checkedKeys {
+		expectedValue := expected[expectedKey]
+
 		if directive.IsDirectiveKey(expectedKey) {
 			continue
 		}
@@ -585,29 +598,17 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	return nil
 }
 
-func asStrictKeysCheckSlice(eSlice []interface{}, aSlice []interface{}) []interface{} {
-	actualKeys := make(map[string]bool)
-	for _, aItem := range aSlice {
-		for k, _ := range toolbox.AsMap(aItem) {
-			if !actualKeys[k] {
-				actualKeys[k] = true
-			}
+func getCheckedKeys(directive *Directive, actual map[string]interface{}, expected map[string]interface{}) map[string]bool {
+	checkedKeys := make(map[string]bool, 0)
+	if directive.StrictMapCheck {
+		for valueKey, _ := range actual {
+			checkedKeys[valueKey] = true
 		}
 	}
-	var result = make([]interface{}, 0)
-	for _, eItem := range eSlice {
-		result = append(result, asStrictKeysCheckMap(toolbox.AsMap(eItem), actualKeys))
+	for expectedKey, _ := range expected {
+		checkedKeys[expectedKey] = true
 	}
-	return result
-}
-
-func asStrictKeysCheckMap(eItemMap map[string]interface{}, aKeys map[string]bool) map[string]interface{} {
-	for aKey, _ := range aKeys {
-		if eItemMap[aKey] == nil {
-			eItemMap[aKey] = "NILDATA"
-		}
-	}
-	return eItemMap
+	return checkedKeys
 }
 
 func asKeyCaseInsensitiveSlice(aSlice []interface{}) []interface{} {
@@ -693,10 +694,6 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 			}
 
 		} else {
-
-			if directive.StrictKeysCheck {
-				expected = asStrictKeysCheckSlice(expected, actual)
-			}
 
 			if !directive.KeyCaseSensitive {
 				expected = asKeyCaseInsensitiveSlice(expected)

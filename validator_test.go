@@ -275,14 +275,15 @@ func TestAssertMap(t *testing.T) {
 	runUseCases(t, useCases)
 }
 
-func TestAssert_StrictKeysCheckAbsent(t *testing.T) {
+func TestAssert_StictMapCheckAbsent(t *testing.T) {
 
 	var useCases = []*assertUseCase{
 		{
 			Description: "strict keys",
 			Expected: `[
   {
-	"@keyCaseSensitive@": false
+	"@keyCaseSensitive@": true,
+	"@coalesceWithZero@":true
   },
   {
     "k1": "value1",
@@ -297,12 +298,12 @@ func TestAssert_StrictKeysCheckAbsent(t *testing.T) {
   {
     "k1": "value1",
     "k2": "value2",
-	"k3": "value3"
+	"k8": "value8"
   },
   {
 	"k1": "valueA",
 	"k2": "valueB",
-	"k3": "valueC"
+	"k9": "valueZ"
   }
 ]`,
 			PassedCount: 4,
@@ -313,15 +314,16 @@ func TestAssert_StrictKeysCheckAbsent(t *testing.T) {
 
 }
 
-func TestAssert_StrictKeysCheckFalse(t *testing.T) {
+func TestAssert_StictMapCheckFalse(t *testing.T) {
 
 	var useCases = []*assertUseCase{
 		{
 			Description: "strict keys",
 			Expected: `[
   {
-	"@keyCaseSensitive@": false,
-	"@strictKeysCheck@": false
+	"@keyCaseSensitive@": true,
+	"@coalesceWithZero@": true,
+	"@strictMapCheck@": false
   },
   {
     "k1": "value1",
@@ -336,12 +338,12 @@ func TestAssert_StrictKeysCheckFalse(t *testing.T) {
   {
     "k1": "value1",
     "k2": "value2",
-	"k3": "value3"
+	"k8": "value8"
   },
   {
 	"k1": "valueA",
 	"k2": "valueB",
-	"k3": "valueC"
+	"k9": "valueZ"
   }
 ]`,
 			PassedCount: 4,
@@ -352,7 +354,7 @@ func TestAssert_StrictKeysCheckFalse(t *testing.T) {
 
 }
 
-func TestAssert_StrictKeysCheckTrue(t *testing.T) {
+func TestAssert_StictMapCheckTrue(t *testing.T) {
 
 	var useCases = []*assertUseCase{
 		{
@@ -360,31 +362,36 @@ func TestAssert_StrictKeysCheckTrue(t *testing.T) {
 			Expected: `[
   {
 	"@keyCaseSensitive@": false,
-	"@strictKeysCheck@": true
+	"@coalesceWithZero@": true,
+	"@strictMapCheck@": true
   },
   {
     "k1": "value1",
-    "k2": "value2"
+    "k2": "value2",
+    "k3": null
   },
   {
 	"k1": "valueA",
-	"k2": "valueB"
+	"k2": "valueB",
+    "k4": null
   }
 ]`,
 			Actual: `[
   {
     "k1": "value1",
     "k2": "value2",
-	"k3": "value3"
+    "k3": 0,
+	"k8": 98
   },
   {
 	"k1": "valueA",
 	"k2": "valueB",
-	"k3": "valueC"
+    "k4": 1,
+	"k9": 99
   }
 ]`,
-			PassedCount: 4,
-			FailedCount: 2,
+			PassedCount: 5,
+			FailedCount: 3,
 		},
 	}
 	runUseCases(t, useCases)
