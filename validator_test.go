@@ -178,7 +178,7 @@ func TestAssertMap(t *testing.T) {
 			Description: "expected apply error",
 			Expected: map[string]interface{}{
 				assertly.CastDataTypeDirective + "k2": "abc",
-				"k2": 2.0,
+				"k2":                                  2.0,
 			},
 			Actual:      map[string]interface{}{},
 			FailedCount: 1,
@@ -203,7 +203,7 @@ func TestAssertMap(t *testing.T) {
 			Description: "actual error",
 			Expected: map[string]interface{}{
 				assertly.TimeFormatDirective + "k2": "yyyy-MM-dd",
-				"k2": "2019-01-01",
+				"k2":                                "2019-01-01",
 			},
 			Actual: map[string]interface{}{
 				"k2": "99-99-99",
@@ -273,6 +273,129 @@ func TestAssertMap(t *testing.T) {
 		},
 	}
 	runUseCases(t, useCases)
+}
+
+func TestAssert_StictMapCheckAbsent(t *testing.T) {
+
+	var useCases = []*assertUseCase{
+		{
+			Description: "strict keys",
+			Expected: `[
+  {
+	"@keyCaseSensitive@": true,
+	"@coalesceWithZero@":true
+  },
+  {
+    "k1": "value1",
+    "k2": "value2"
+  },
+  {
+	"k1": "valueA",
+	"k2": "valueB"
+  }
+]`,
+			Actual: `[
+  {
+    "k1": "value1",
+    "k2": "value2",
+	"k8": "value8"
+  },
+  {
+	"k1": "valueA",
+	"k2": "valueB",
+	"k9": "valueZ"
+  }
+]`,
+			PassedCount: 4,
+			FailedCount: 0,
+		},
+	}
+	runUseCases(t, useCases)
+
+}
+
+func TestAssert_StictMapCheckFalse(t *testing.T) {
+
+	var useCases = []*assertUseCase{
+		{
+			Description: "strict keys",
+			Expected: `[
+  {
+	"@keyCaseSensitive@": true,
+	"@coalesceWithZero@": true,
+	"@strictMapCheck@": false
+  },
+  {
+    "k1": "value1",
+    "k2": "value2"
+  },
+  {
+	"k1": "valueA",
+	"k2": "valueB"
+  }
+]`,
+			Actual: `[
+  {
+    "k1": "value1",
+    "k2": "value2",
+	"k8": "value8"
+  },
+  {
+	"k1": "valueA",
+	"k2": "valueB",
+	"k9": "valueZ"
+  }
+]`,
+			PassedCount: 4,
+			FailedCount: 0,
+		},
+	}
+	runUseCases(t, useCases)
+
+}
+
+func TestAssert_StictMapCheckTrue(t *testing.T) {
+
+	var useCases = []*assertUseCase{
+		{
+			Description: "strict keys",
+			Expected: `[
+  {
+	"@keyCaseSensitive@": false,
+	"@coalesceWithZero@": true,
+	"@strictMapCheck@": true
+  },
+  {
+    "k1": "value1",
+    "k2": "value2",
+    "k3": null
+  },
+  {
+	"k1": "valueA",
+	"k2": "valueB",
+    "k4": null
+  }
+]`,
+			Actual: `[
+  {
+    "k1": "value1",
+    "k2": "value2",
+    "k3": 0,
+	"k8": 98
+  },
+  {
+	"k1": "valueA",
+	"k2": "valueB",
+    "k4": 1,
+	"k9": 99
+  }
+]`,
+			PassedCount: 5,
+			FailedCount: 3,
+		},
+	}
+	runUseCases(t, useCases)
+
 }
 
 func TestAssert_CaseInsensitive(t *testing.T) {
@@ -458,9 +581,9 @@ func TestAssertSlice(t *testing.T) {
 			Description: "indexed slice cast test",
 			Expected: []map[string]interface{}{
 				{
-					"key": 1,
-					"x":   100,
-					"y":   200,
+					"key":                                1,
+					"x":                                  100,
+					"y":                                  200,
 					assertly.CastDataTypeDirective + "x": "float",
 				},
 			},

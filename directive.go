@@ -22,6 +22,7 @@ const (
 	CoalesceWithZeroDirective      = "@coalesceWithZero@"
 	AssertPathDirective            = "@assertPath@"
 	LengthDirective                = "@length@"
+	StrictMapCheckDirective        = "@strictMapCheck@"
 )
 
 type AssertPath struct {
@@ -37,6 +38,7 @@ type Directive struct {
 	TimeLayout            string
 	KeyCaseSensitive      bool
 	CaseSensitive         bool
+	StrictMapCheck        bool
 	TimeLayouts           map[string]string
 	DataType              map[string]string
 	Lengths               map[string]int
@@ -60,6 +62,7 @@ func (d *Directive) mergeFrom(source *Directive) {
 	d.CoalesceWithZero = source.CoalesceWithZero
 	d.CaseSensitive = source.CaseSensitive
 	d.KeyCaseSensitive = source.KeyCaseSensitive
+	d.StrictMapCheck = source.StrictMapCheck
 	d.TimeLayouts = source.TimeLayouts
 	if d.MatchingPath() == "" && len(d.IndexBy) == 0 {
 		d.IndexBy = source.IndexBy
@@ -223,6 +226,10 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 
 		if k == KeyCaseSensitiveDirective {
 			d.KeyCaseSensitive = toolbox.AsBoolean(v)
+			continue
+		}
+		if k == StrictMapCheckDirective {
+			d.StrictMapCheck = toolbox.AsBoolean(v)
 			continue
 		}
 		if k == CaseSensitiveDirective {

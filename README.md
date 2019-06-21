@@ -341,7 +341,7 @@ Directive is piece of information instructing validator to either convert data j
 -	CoalesceWithZeroDirective       = "@coalesceWithZero@"
 -	AssertPathDirective             = "@assertPath@"
 -	LengthDirective                 = "@length@"
-
+-  	StrictMapCheckDirective	    = "@strictMapCheck@"
 
 ## Assert Path
 

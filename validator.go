@@ -127,14 +127,17 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 }
 
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
+
 	directive := NewDirective(path)
 	if expected == nil {
 		if actual == nil {
 			validation.PassedCount++
 			return nil
 		}
-		validation.AddFailure(NewFailure(path.Source(), path.Path(), NotEqualViolation, expected, actual))
-		return
+		if !directive.StrictMapCheck {
+			validation.AddFailure(NewFailure(path.Source(), path.Path(), NotEqualViolation, expected, actual))
+			return
+		}
 	}
 
 	switch val := expected.(type) {
@@ -363,11 +366,17 @@ func actualMap(expected, actualValue interface{}, path DataPath, directive *Dire
 
 func assertInt(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
 	directive := path.Directive()
-	expectedInt, actualErr := toolbox.ToInt(expected)
-	if actualErr != nil {
+	expectedInt, expectedErr := toolbox.ToInt(expected)
+	if expectedErr != nil && !toolbox.IsNilPointerError(expectedErr) {
 		_ = assertText(toolbox.AsString(expected), toolbox.AsString(actual), path, context, validation)
 		return
 	}
+	if toolbox.IsNilPointerError(expectedErr) && directive.CoalesceWithZero && directive.StrictMapCheck {
+		expectedErr = nil
+		expectedInt = 0
+		expected = 0
+	}
+
 	actualInt, actualErr := toolbox.ToInt(actual)
 
 	if toolbox.IsNilPointerError(actualErr) {
@@ -394,6 +403,11 @@ func assertInt(expected, actual interface{}, path DataPath, context *Context, va
 func assertFloat(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
 	directive := path.Directive()
 	expectedFloat, expectedErr := toolbox.ToFloat(expected)
+	if toolbox.IsNilPointerError(expectedErr) && directive.CoalesceWithZero && directive.StrictMapCheck {
+		expectedErr = nil
+		expectedFloat = 0
+		expected = 0
+	}
 	actualFloat, actualErr := toolbox.ToFloat(actual)
 
 	if toolbox.IsNilPointerError(actualErr) {
@@ -534,12 +548,16 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 			validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), LengthViolation, expectedLength, actualLength))
 		}
 	}
+	var checkedKeys map[string]bool
+	if directive.StrictMapCheck {
+		checkedKeys = getKeys(expected, actual)
+	} else {
+		checkedKeys = getKeys(expected)
+	}
 
-	for expectedKey, expectedValue := range expected {
-		val := expected[expectedKey]
-		if val == nil || toolbox.AsString(val) == "" {
-			continue
-		}
+	for expectedKey, _ := range checkedKeys {
+		expectedValue := expected[expectedKey]
+
 		if directive.IsDirectiveKey(expectedKey) {
 			continue
 		}
@@ -583,6 +601,16 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		}
 	}
 	return nil
+}
+
+func getKeys(mapList ...map[string]interface{}) map[string]bool {
+	result := make(map[string]bool, 0)
+	for _, mapElement := range mapList {
+		for key, _ := range mapElement {
+			result[key] = true
+		}
+	}
+	return result
 }
 
 func asKeyCaseInsensitiveSlice(aSlice []interface{}) []interface{} {
