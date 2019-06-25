@@ -368,30 +368,34 @@ func TestAssert_StictMapCheckTrue(t *testing.T) {
   {
     "k1": "value1",
     "k2": "value2",
-    "k3": null
+    "k3": null,
+    "k5": null
   },
   {
 	"k1": "valueA",
 	"k2": "valueB",
-    "k4": null
+    "k4": null,
+    "k6": 0.0
   }
 ]`,
 			Actual: `[
   {
     "k1": "value1",
     "k2": "value2",
-    "k3": 0,
+    "k3": "zero",
+    "k5": 0,
 	"k8": 98
   },
   {
 	"k1": "valueA",
 	"k2": "valueB",
-    "k4": 1,
+    "k4": "one",
+    "k6": null,
 	"k9": 99
   }
 ]`,
-			PassedCount: 5,
-			FailedCount: 3,
+			PassedCount: 6,
+			FailedCount: 4,
 		},
 	}
 	runUseCases(t, useCases)
