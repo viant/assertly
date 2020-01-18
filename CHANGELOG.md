@@ -1,4 +1,4 @@
-## Jan 18 2020 - v0.4.9
+## Jan 18 2020 - v0.5.2
     * modify @length directive to support arbitrary path
     
 ## April 23 2019 - v0.4.8
