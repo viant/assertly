@@ -529,7 +529,8 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 
 	if len(directive.Lengths) > 0 {
 		for key, expectedLength := range directive.Lengths {
-			value, ok := actual[key]
+			aMap := data.Map(actual)
+			value, ok := aMap.GetValue(key)
 			keyPath := path.Key(key)
 			if !ok {
 				validation.AddFailure(NewFailure(keyPath.Source(), keyPath.Path(), LengthViolation, expectedLength, value))
@@ -555,7 +556,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		checkedKeys = getKeys(expected)
 	}
 
-	for expectedKey, _ := range checkedKeys {
+	for expectedKey := range checkedKeys {
 		expectedValue := expected[expectedKey]
 
 		if directive.IsDirectiveKey(expectedKey) {
@@ -606,7 +607,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 func getKeys(mapList ...map[string]interface{}) map[string]bool {
 	result := make(map[string]bool, 0)
 	for _, mapElement := range mapList {
-		for key, _ := range mapElement {
+		for key := range mapElement {
 			result[key] = true
 		}
 	}

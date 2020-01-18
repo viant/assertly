@@ -1540,7 +1540,7 @@ func TestAssertWithAssertPath(t *testing.T) {
 			Expected: `{
 	"@assertPath@key1.id":1,
 	"@assertPath@key2.id":2,
-	"@assertPath@key2.name":"name 33"
+	"@assertPath@key2.name":"name 22"
 }`,
 			Actual: `{
   "key1": {
@@ -1554,8 +1554,8 @@ func TestAssertWithAssertPath(t *testing.T) {
     "name":"name 22"
   }
 }`,
-			PassedCount: 2,
-			FailedCount: 1,
+			PassedCount: 3,
+			FailedCount: 0,
 		},
 		{
 			Description: "data structure with assertPath directive and regular data",
@@ -1584,12 +1584,130 @@ func TestAssertWithAssertPath(t *testing.T) {
   },
  "key3": {
     "id":3,
-	"seq":0,
+	"seq":3,
     "name":"name 3"
   }
 }`,
+			PassedCount: 5,
+			FailedCount: 0,
+		}, {
+			Description: "complex check",
+			Actual: `{
+	"Data": {
+		"events": [
+			{
+				"event_type": 2,
+				"id": 1,
+				"type":{
+					"id":2,
+					"name":"type 2"
+				},
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 33.23432374000549,
+				"timestamp": "2019-03-11T02:20:33Z"
+			},
+			{
+				"event_type": 2,
+				"id": 2,
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 21.957962334156036,
+				"timestamp": "2019-03-15T12:07:33Z"
+			},
+			{
+				"event_type": 2,
+				"id": 3,
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 5.084940046072006,
+				"timestamp": "2019-04-10T05:15:33Z"
+			},
+			{
+				"event_type": 3,
+				"id": 4,
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 6.557567559182644,
+				"timestamp": "2019-04-06T06:30:33Z"
+			},
+			{
+				"event_type": 3,
+				"id": 5,
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 26.21499478816986,
+				"timestamp": "2019-03-21T04:08:33Z"
+			},
+			{
+				"event_type": 3,
+				"id": 6,
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 12.070401951670647,
+				"timestamp": "2019-03-13T09:47:33Z"
+			},
+			{
+				"event_type": 4,
+				"id": 7,
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 16.948733657598495,
+				"timestamp": "2019-03-18T09:10:33Z"
+			},
+			{
+				"event_type": 4,
+				"id": 8,
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 15.302604854106903,
+				"timestamp": "2019-03-28T11:16:33Z"
+			},
+			{
+				"event_type": 5,
+				"id": 9,
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 33.91697895526886,
+				"timestamp": "2019-04-23T12:12:33Z"
+			},
+			{
+				"event_type": 5,
+				"id": 10,
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 11.549782872200012,
+				"timestamp": "2019-04-24T06:51:33Z"
+			},
+			{
+				"event_type": 5,
+				"id": 11,
+				"modified": "2020-01-15T02:11:00Z",
+				"quantity": 28.821644484996796,
+				"timestamp": "2019-04-01T02:02:33Z"
+			}
+		]
+	},
+	"Rule": {
+		"Info": {
+			"URL": "file://localhost/Projects/go/workspace/src/github.com/viant/datly/reader/test/read/case001/rule/event_uri_1.yaml"
+		},
+		"Outputs": [
+			{
+				"DataView": "events",
+				"Key": "events"
+			}
+		],
+		"URI": "/case001/",
+		"URIPrefix": "/case001/",
+		"UseCache": false,
+		"Views": [
+			{
+				"Connector": "db",
+				"Name": "events",
+				"Table": "events"
+			}
+		]
+	},
+	"Status": "ok"
+}`,
+			Expected: `{
+	"@assertPath@Data.events[0].id": 1,
+	"@assertPath@Data.events[0].type.name": "type 2",
+	"@assertPath@Data.events[0].type.id": 2,
+	"@length@Data.events":11
+}`,
 			PassedCount: 4,
-			FailedCount: 1,
 		},
 	}
 	defaultDirective := assertly.NewDirective(assertly.NewDataPath(""))

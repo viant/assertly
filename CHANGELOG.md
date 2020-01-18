@@ -1,3 +1,6 @@
+## Jan 18 2020 - v0.4.9
+    * modify @length directive to support arbitrary path
+    
 ## April 23 2019 - v0.4.8
     * patched time validation with custom time format
     * patched field level time layout

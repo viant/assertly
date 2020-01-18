@@ -78,7 +78,7 @@ func TestDirective_ExtractExpected(t *testing.T) {
 	{ //test key time format
 		var source = map[string]interface{}{
 			CastDataTypeDirective + "k2": "float",
-			"k2": "3.7",
+			"k2":                         "3.7",
 		}
 		directive.ExtractDirectives(source)
 		assert.EqualValues(t, "float", directive.DataType["k2"])
