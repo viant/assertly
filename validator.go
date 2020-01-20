@@ -537,10 +537,12 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 				continue
 			}
 			actualLength := 0
-			if toolbox.IsSlice(value) {
-				actualLength = len(toolbox.AsSlice(value))
-			} else if toolbox.IsMap(value) {
-				actualLength = len(toolbox.AsMap(value))
+			if value != nil {
+				if toolbox.IsSlice(value) {
+					actualLength = len(toolbox.AsSlice(value))
+				} else if toolbox.IsMap(value) {
+					actualLength = len(toolbox.AsMap(value))
+				}
 			}
 			if actualLength == expectedLength {
 				validation.PassedCount++
