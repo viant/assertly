@@ -60,12 +60,14 @@ func (p *dataPath) Key(field string) DataPath {
 
 	keyDirective := NewDirective(keyPath)
 	keyPath.directive = keyDirective
-	if len(p.directive.TimeLayouts) > 0 {
-		if timeLayout, ok := p.directive.TimeLayouts[field]; ok {
-			keyPath.directive.TimeLayout = timeLayout
+	if p.directive != nil {
+		if len(p.directive.TimeLayouts) > 0 {
+			if timeLayout, ok := p.directive.TimeLayouts[field]; ok {
+				keyPath.directive.TimeLayout = timeLayout
+			}
 		}
+		keyDirective.mergeFrom(p.directive)
 	}
-	keyDirective.mergeFrom(p.directive)
 	return keyPath
 }
 
