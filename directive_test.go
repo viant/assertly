@@ -151,7 +151,7 @@ func TestAssertPath_Directive(t *testing.T) {
 		"SubPath": "group1.field1",
 		"Expected": 1
 	},
-	{g
+	{
 		"SubPath": "group1.field2",
 		"Expected": 2
 	},
