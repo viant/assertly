@@ -175,6 +175,35 @@ func TestAssertMap(t *testing.T) {
 		},
 
 		{
+			Description: "two slice with  index test",
+			Expected: []interface{}{
+				map[string]interface{}{
+					assertly.IndexByDirective: "id",
+				},
+				map[string]interface{}{
+					"id":   1,
+					"name": "name 1",
+				},
+				map[string]interface{}{
+					"id":   2,
+					"name": "name 2",
+				},
+			},
+			Actual: []interface{}{
+				map[string]interface{}{
+					"id":   2,
+					"name": "name 2",
+				},
+				map[string]interface{}{
+					"id":   1,
+					"name": "name 1",
+				},
+			},
+			PassedCount: 4,
+			FailedCount: 0,
+		},
+
+		{
 			Description: "expected apply error",
 			Expected: map[string]interface{}{
 				assertly.CastDataTypeDirective + "k2": "abc",
