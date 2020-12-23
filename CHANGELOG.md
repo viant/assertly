@@ -1,3 +1,6 @@
+## Jan 18 2020 - v0.6.0
+    * patched float assertion
+
 ## Jan 18 2020 - v0.5.2
     * modify @length directive to support arbitrary path
     

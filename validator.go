@@ -408,6 +408,8 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 		expectedFloat = 0
 		expected = 0
 	}
+
+
 	actualFloat, actualErr := toolbox.ToFloat(actual)
 
 	if toolbox.IsNilPointerError(actualErr) {
@@ -423,6 +425,11 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 			unit := 1 / math.Pow(10, precisionPoint)
 			expectedFloat = math.Round(expectedFloat/unit) * unit
 			actualFloat = math.Round(actualFloat/unit) * unit
+		}
+	} else 	if actualFloat, ok := actual.(float64); ok {
+		if isEqual := expectedErr == nil &&  expectedFloat == actualFloat; !isEqual {
+			validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
+			return
 		}
 	}
 
