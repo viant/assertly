@@ -44,7 +44,7 @@ type Directive struct {
 	Lengths               map[string]int
 	SwitchBy              []string
 	CoalesceWithZero      bool
-	NumericPrecisionPoint int
+	NumericPrecisionPoint *int
 	IndexBy               []string
 	Source                string
 	SortText              bool
@@ -68,7 +68,7 @@ func (d *Directive) mergeFrom(source *Directive) {
 		d.IndexBy = source.IndexBy
 	}
 
-	if d.NumericPrecisionPoint == 0 {
+	if d.NumericPrecisionPoint != nil {
 		d.NumericPrecisionPoint = source.NumericPrecisionPoint
 	}
 	if d.TimeLayout == "" {
@@ -162,8 +162,8 @@ func (d *Directive) Add(target map[string]interface{}) {
 		target[IndexByDirective] = d.IndexBy
 	}
 
-	if d.NumericPrecisionPoint > 0 {
-		target[NumericPrecisionPointDirective] = d.NumericPrecisionPoint
+	if d.NumericPrecisionPoint  != nil  && *d.NumericPrecisionPoint  > 0 {
+		target[NumericPrecisionPointDirective] = *d.NumericPrecisionPoint
 	}
 
 	if d.CoalesceWithZero {
@@ -238,7 +238,8 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 		}
 
 		if k == NumericPrecisionPointDirective {
-			d.NumericPrecisionPoint = toolbox.AsInt(v)
+			val :=  toolbox.AsInt(v)
+			d.NumericPrecisionPoint = &val
 			continue
 		}
 
@@ -337,8 +338,8 @@ func (d *Directive) Apply(aMap map[string]interface{}) error {
 	if err := d.applyTimeFormat(aMap); err != nil {
 		return err
 	}
-	if d.NumericPrecisionPoint != 0 {
-		aMap[NumericPrecisionPointDirective] = d.NumericPrecisionPoint
+	if d.NumericPrecisionPoint != nil {
+		aMap[NumericPrecisionPointDirective] = *d.NumericPrecisionPoint
 	}
 	if d.CoalesceWithZero {
 		aMap[CoalesceWithZeroDirective] = d.CoalesceWithZero
@@ -450,6 +451,7 @@ func NewDirective(path DataPath) *Directive {
 		KeyCaseSensitive: true,
 		CaseSensitive:    true,
 		AssertPaths:      make([]*AssertPath, 0),
+
 	}
 	if dataPath != nil {
 		dataPath.directive = result
@@ -470,7 +472,7 @@ func NewDirective(path DataPath) *Directive {
 	path.Each(func(path DataPath) bool {
 		directive := path.Directive()
 		if directive != nil {
-			if directive.NumericPrecisionPoint != 0 {
+			if directive.NumericPrecisionPoint != nil {
 				result.NumericPrecisionPoint = directive.NumericPrecisionPoint
 				return false
 			}

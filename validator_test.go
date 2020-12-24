@@ -1302,6 +1302,13 @@ func TestAssertNumericPrecission(t *testing.T) {
 			PassedCount: 1,
 			FailedCount: 0,
 		},
+		{
+			Description: "float assert",
+			Expected: 1.0,
+			Actual: 1.1,
+			PassedCount: 0,
+			FailedCount: 1,
+		},
 	}
 
 	context := assertly.NewDefaultContext()
