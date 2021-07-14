@@ -156,8 +156,11 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	predicate := getPredicate(expected)
 	if predicate == nil {
 		switch val := actual.(type) {
+		case *string:
+			if toolbox.IsNewLineDelimitedJSON(*val) || toolbox.IsCompleteJSON(*val) {
+				actual = asDataStructure(*val)
+			}
 		case string:
-
 			if toolbox.IsNewLineDelimitedJSON(val) || toolbox.IsCompleteJSON(val) {
 				actual = asDataStructure(val)
 			}
