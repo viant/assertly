@@ -287,6 +287,22 @@ func TestAssertMap(t *testing.T) {
 			PassedCount: 1,
 			FailedCount: 1,
 		},
+
+
+		{
+			Description: "length directive on string and failure use case",
+			Expected: map[string]interface{}{
+				"@length@key1": 3,
+				"f2":           2,
+			},
+			Actual: map[string]interface{}{
+				"key1": "123",
+				"f2":   3,
+			},
+			HasError:    false,
+			PassedCount: 1,
+			FailedCount: 1,
+		},
 		{
 			Description: "length directive missing failure use case",
 			Expected: map[string]interface{}{

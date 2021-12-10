@@ -558,6 +558,9 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 				} else if toolbox.IsMap(value) {
 					actualLength = len(toolbox.AsMap(value))
 				}
+				if text, ok := value.(string);ok {
+					actualLength = len(text)
+				}	
 			}
 			if actualLength == expectedLength {
 				validation.PassedCount++
