@@ -330,7 +330,7 @@ func assertText(expected, actual string, path DataPath, context *Context, valida
 		if isRangeExpr {
 			return assertRange(isNegated, expected, actual, path, context, validation)
 		}
-		isContains := strings.HasPrefix(expected, "/")
+		isContains := len(expected) > 2 && strings.HasPrefix(expected, "/") && strings.HasSuffix(expected, "/")
 		if isContains {
 			assertContains(isNegated, expected, actual, path, context, validation)
 			return nil
@@ -412,10 +412,8 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 		expected = 0
 	}
 
-
-
-	if actualFloat, ok := actual.(float64); ok && directive.NumericPrecisionPoint  == nil  {
-		if isEqual := expectedErr == nil &&  expectedFloat == actualFloat; !isEqual {
+	if actualFloat, ok := actual.(float64); ok && directive.NumericPrecisionPoint == nil {
+		if isEqual := expectedErr == nil && expectedFloat == actualFloat; !isEqual {
 			validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
 			return
 		}
@@ -439,7 +437,6 @@ func assertFloat(expected, actual interface{}, path DataPath, context *Context, 
 			actualFloat = math.Round(actualFloat/unit) * unit
 		}
 	}
-
 
 	isEqual := expectedErr == nil && actualErr == nil && expectedFloat == actualFloat
 	if !isEqual {
@@ -558,9 +555,9 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 				} else if toolbox.IsMap(value) {
 					actualLength = len(toolbox.AsMap(value))
 				}
-				if text, ok := value.(string);ok {
+				if text, ok := value.(string); ok {
 					actualLength = len(text)
-				}	
+				}
 			}
 			if actualLength == expectedLength {
 				validation.PassedCount++
