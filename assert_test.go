@@ -7,6 +7,15 @@ import (
 	"testing"
 )
 
+func Test_AssertValues_Pointers(t *testing.T) {
+	type foo struct {
+		Name  *string
+		Price *float64
+	}
+
+	AssertValues(t, &foo{}, &foo{})
+}
+
 func Test_AssertValues(t *testing.T) {
 	var actual = `[
 	{
