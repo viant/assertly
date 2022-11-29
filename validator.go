@@ -145,8 +145,14 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		assertInt(expected, actual, path, context, validation)
 		return
 	case float32, float64:
+		actual = toolbox.AsFloat(actual)
 		assertFloat(expected, actual, path, context, validation)
 		return
+	case *float32, *float64:
+		expected = toolbox.AsFloat(val)
+		assertFloat(expected, actual, path, context, validation)
+		return
+
 	case string:
 		if expected, err = expandExpectedText(val, path, context); err != nil {
 			return err
@@ -168,8 +174,15 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 			assertInt(expected, actual, path, context, validation)
 			return
 		case float32, float64:
+			actual = toolbox.AsFloat(actual)
 			assertFloat(expected, actual, path, context, validation)
 			return
+		case *float32, *float64:
+			expected = toolbox.AsFloat(expected)
+			actual = toolbox.AsFloat(actual)
+			assertFloat(expected, actual, path, context, validation)
+			return
+
 		}
 	} else {
 
