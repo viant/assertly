@@ -129,7 +129,7 @@ func FormatMessage(failure *Failure) string {
 		return fmt.Sprintf("actual '%v' should not not contain: '%v'", failure.Actual, failure.Expected)
 	case PredicateViolation:
 		return fmt.Sprintf("actual '%v' should pass predicate: '%v'", failure.Actual, failure.Expected)
-	case ElapsedRangeDirective:
+	case ElapseRangeViolation:
 		return fmt.Sprintf("actual '%v' should be within: '%v'", failure.Actual, failure.Expected)
 
 	}
