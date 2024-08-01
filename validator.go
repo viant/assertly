@@ -35,7 +35,7 @@ const (
 	PredicateViolation            = "should pass predicate"
 	ValueWasNil                   = "should have not nil"
 	SharedSwitchCaseKey           = "shared"
-	TimeSinceWithinViolation      = "should elapsed be within"
+	ElapseRangeViolation          = "should elapsed be within"
 )
 
 // Assert validates expected against actual data structure for supplied path
@@ -566,7 +566,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 				}
 				diff := time.Now().Sub(*actualTime)
 				if diff < from || diff > to {
-					validation.AddFailure(NewFailure(path.Source(), path.Path(), TimeSinceWithinViolation, fmt.Sprintf("%s..%s", from.Seconds(), to.Seconds()), diff.Seconds()))
+					validation.AddFailure(NewFailure(path.Source(), path.Path(), ElapseRangeViolation, fmt.Sprintf("%s..%s", from.Seconds(), to.Seconds()), diff.Seconds()))
 				} else {
 					validation.PassedCount++
 				}
