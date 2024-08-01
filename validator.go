@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -555,9 +554,9 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		indexable = false
 	}
 
-	if len(directive.TimeSinceWithin) > 0 {
-		for k, withInExpr := range directive.TimeSinceWithin {
-			duration, unit, _ := parseWithinExpr(withInExpr)
+	if len(directive.ElaspedRange) > 0 {
+		for k, withInExpr := range directive.ElaspedRange {
+			from, to := parseElapseRangeExpr(withInExpr)
 
 			if actualValue, ok := actual[k]; ok {
 				dateLayout := path.Match(context).DefaultTimeLayout()
@@ -566,7 +565,7 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 					return err
 				}
 				diff := time.Now().Sub(*actualTime)
-				if diff > unit*time.Duration(duration) {
+				if diff < from || diff > to {
 					validation.AddFailure(NewFailure(path.Source(), path.Path(), TimeSinceWithinViolation, withInExpr, diff))
 				} else {
 					validation.PassedCount++
@@ -658,37 +657,33 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	return nil
 }
 
-func parseWithinExpr(expr string) (int, time.Duration, *time.Location) {
-
-	var duration int
+func parseElapseRangeExpr(expr string) (time.Duration, time.Duration) {
+	var from, to int
 	var unit time.Duration
-	var tz *time.Location
+	var rangeExpr string
 	lcExpr := strings.ToLower(expr)
-	switch {
-	case strings.Contains(lcExpr, "min"):
-		if index := strings.Index(lcExpr, "min"); index != -1 {
-			duration, _ = strconv.Atoi(strings.TrimSpace(lcExpr[:index]))
-			unit = time.Minute
-		}
-	case strings.Contains(lcExpr, "sec"):
-		if index := strings.Index(lcExpr, "sec"); index != -1 {
-			duration, _ = strconv.Atoi(strings.TrimSpace(lcExpr[:index]))
-			unit = time.Second
-		}
-	case strings.Contains(lcExpr, "hour"):
-		if index := strings.Index(lcExpr, "hour"); index != -1 {
-			duration, _ = strconv.Atoi(strings.TrimSpace(lcExpr[:index]))
-			unit = time.Hour
-		}
-	}
 
-	if strings.Contains(expr, "UTC") {
-		tz = time.UTC
+	if index := strings.Index(lcExpr, "min"); index != -1 {
+		unit = time.Minute
+		rangeExpr = strings.TrimSpace(expr[:index])
+	} else if index := strings.Index(lcExpr, "sec"); index != -1 {
+		unit = time.Second
+		rangeExpr = strings.TrimSpace(expr[:index])
+	} else if index := strings.Index(lcExpr, "hour"); index != -1 {
+		unit = time.Hour
+		rangeExpr = strings.TrimSpace(expr[:index])
 	}
-	if tz == nil {
-		tz = time.Local
+	rangeExpr = strings.ReplaceAll(rangeExpr, "[", "")
+	rangeExpr = strings.TrimSpace(strings.ReplaceAll(rangeExpr, "]", ""))
+
+	if index := strings.Index(rangeExpr, ".."); index != -1 {
+		from = toolbox.AsInt(strings.TrimSpace(rangeExpr[:index]))
+		to = toolbox.AsInt(strings.TrimSpace(rangeExpr[index+2:]))
+	} else {
+		from = toolbox.AsInt(rangeExpr)
+		to = from
 	}
-	return duration, unit, tz
+	return time.Duration(from) * unit, time.Duration(to) * unit
 }
 
 func getKeys(mapList ...map[string]interface{}) map[string]bool {

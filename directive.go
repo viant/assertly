@@ -23,7 +23,7 @@ const (
 	AssertPathDirective            = "@assertPath@"
 	LengthDirective                = "@length@"
 	StrictMapCheckDirective        = "@strictMapCheck@"
-	TimeSinceWithinDirective       = "@timeSinceWithin@"
+	ElapsedRangeDirective          = "@elapsedRange@"
 )
 
 type AssertPath struct {
@@ -42,7 +42,7 @@ type Directive struct {
 	StrictMapCheck        bool
 	TimeLayouts           map[string]string
 	DataType              map[string]string
-	TimeSinceWithin       map[string]string
+	ElaspedRange          map[string]string
 	Lengths               map[string]int
 	SwitchBy              []string
 	CoalesceWithZero      bool
@@ -59,7 +59,7 @@ func (d *Directive) mergeFrom(source *Directive) {
 	}
 	mergeTextMap(source.DataType, &d.DataType)
 	mergeTextMap(source.TimeLayouts, &d.TimeLayouts)
-	mergeTextMap(source.TimeSinceWithin, &d.TimeSinceWithin)
+	mergeTextMap(source.ElaspedRange, &d.ElaspedRange)
 	mergeBoolMap(source.KeyExists, &d.KeyExists)
 	mergeBoolMap(source.KeyDoesNotExist, &d.KeyDoesNotExist)
 	d.CoalesceWithZero = source.CoalesceWithZero
@@ -110,12 +110,12 @@ func (d *Directive) AddTimeLayout(key, value string) {
 	d.TimeLayouts[key] = value
 }
 
-// AddTimeSinceWithin adds time layout TestDirective
-func (d *Directive) AddTimeSinceWithin(key, value string) {
-	if len(d.TimeSinceWithin) == 0 {
-		d.TimeSinceWithin = make(map[string]string)
+// AddElapsedRange adds time layout TestDirective
+func (d *Directive) AddElapsedRange(key, value string) {
+	if len(d.ElaspedRange) == 0 {
+		d.ElaspedRange = make(map[string]string)
 	}
-	d.TimeSinceWithin[key] = value
+	d.ElaspedRange[key] = value
 }
 
 // AddDataType adds data type TestDirective
@@ -191,9 +191,9 @@ func (d *Directive) Add(target map[string]interface{}) {
 			target[TimeLayoutDirective+k] = v
 		}
 	}
-	if len(d.TimeSinceWithin) > 0 {
-		for k, v := range d.TimeSinceWithin {
-			target[TimeSinceWithinDirective+k] = v
+	if len(d.ElaspedRange) > 0 {
+		for k, v := range d.ElaspedRange {
+			target[ElapsedRangeDirective+k] = v
 		}
 	}
 	if d.TimeLayout != "" {
@@ -331,9 +331,9 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 				continue
 			}
 
-			if strings.HasPrefix(k, TimeSinceWithinDirective) {
-				var key = strings.Replace(k, TimeSinceWithinDirective, "", 1)
-				d.AddTimeSinceWithin(key, text)
+			if strings.HasPrefix(k, ElapsedRangeDirective) {
+				var key = strings.Replace(k, ElapsedRangeDirective, "", 1)
+				d.AddElapsedRange(key, text)
 				continue
 			}
 

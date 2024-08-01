@@ -395,11 +395,11 @@ func TestAssert_StictMapCheckFalse(t *testing.T) {
 			FailedCount: 0,
 		},
 		{
-			Description: "timeSince within 1 second",
+			Description: "elapsedRange ",
 			Expected: map[string]interface{}{
-				"@indexBy@":            "id",
-				"@timeSinceWithin@ts":  "30 sec",
-				"@timeSinceWithin@ts1": "1 sec",
+				"@indexBy@":         "id",
+				"@elapsedRange@ts":  "[0..30]sec",
+				"@elapsedRange@ts1": "1 sec",
 			},
 			Actual: map[string]interface{}{
 				"ts":  time.Now().Format(time.RFC3339),
@@ -410,7 +410,6 @@ func TestAssert_StictMapCheckFalse(t *testing.T) {
 			FailedCount: 1,
 		},
 	}
-	useCases = useCases[len(useCases)-1:]
 	runUseCases(t, useCases)
 
 }
