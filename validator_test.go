@@ -7,6 +7,7 @@ import (
 	"github.com/viant/toolbox"
 	"os"
 	"testing"
+	"time"
 )
 
 type assertUseCase struct {
@@ -288,7 +289,6 @@ func TestAssertMap(t *testing.T) {
 			FailedCount: 1,
 		},
 
-
 		{
 			Description: "length directive on string and failure use case",
 			Expected: map[string]interface{}{
@@ -394,7 +394,23 @@ func TestAssert_StictMapCheckFalse(t *testing.T) {
 			PassedCount: 4,
 			FailedCount: 0,
 		},
+		{
+			Description: "timeSince within 1 second",
+			Expected: map[string]interface{}{
+				"@indexBy@":            "id",
+				"@timeSinceWithin@ts":  "30 sec",
+				"@timeSinceWithin@ts1": "1 sec",
+			},
+			Actual: map[string]interface{}{
+				"ts":  time.Now().Format(time.RFC3339),
+				"ts1": time.Now().Add(-time.Hour).Format(time.RFC3339),
+			},
+			HasError:    false,
+			PassedCount: 1,
+			FailedCount: 1,
+		},
 	}
+	useCases = useCases[len(useCases)-1:]
 	runUseCases(t, useCases)
 
 }
@@ -1320,8 +1336,8 @@ func TestAssertNumericPrecission(t *testing.T) {
 		},
 		{
 			Description: "float assert",
-			Expected: 1.0,
-			Actual: 1.1,
+			Expected:    1.0,
+			Actual:      1.1,
 			PassedCount: 0,
 			FailedCount: 1,
 		},

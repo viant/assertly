@@ -341,8 +341,8 @@ Directive is piece of information instructing validator to either convert data j
 -	CoalesceWithZeroDirective       = "@coalesceWithZero@"
 -	AssertPathDirective             = "@assertPath@"
 -	LengthDirective                 = "@length@"
--  	StrictMapCheckDirective	    = "@strictMapCheck@"
-
+-  	StrictMapCheckDirective	        = "@strictMapCheck@"
+-   TimeSinceWithin                 = "@timeSinceWithin@"
 ## Assert Path
 
 **@assertPath@** directive allows validation only specified path within given node, the following construct can be used:

@@ -23,6 +23,7 @@ const (
 	AssertPathDirective            = "@assertPath@"
 	LengthDirective                = "@length@"
 	StrictMapCheckDirective        = "@strictMapCheck@"
+	TimeSinceWithinDirective       = "@timeSinceWithin@"
 )
 
 type AssertPath struct {
@@ -30,7 +31,7 @@ type AssertPath struct {
 	Expected interface{}
 }
 
-//Match represents a validation TestDirective
+// Match represents a validation TestDirective
 type Directive struct {
 	DataPath
 	KeyExists             map[string]bool
@@ -41,6 +42,7 @@ type Directive struct {
 	StrictMapCheck        bool
 	TimeLayouts           map[string]string
 	DataType              map[string]string
+	TimeSinceWithin       map[string]string
 	Lengths               map[string]int
 	SwitchBy              []string
 	CoalesceWithZero      bool
@@ -57,6 +59,7 @@ func (d *Directive) mergeFrom(source *Directive) {
 	}
 	mergeTextMap(source.DataType, &d.DataType)
 	mergeTextMap(source.TimeLayouts, &d.TimeLayouts)
+	mergeTextMap(source.TimeSinceWithin, &d.TimeSinceWithin)
 	mergeBoolMap(source.KeyExists, &d.KeyExists)
 	mergeBoolMap(source.KeyDoesNotExist, &d.KeyDoesNotExist)
 	d.CoalesceWithZero = source.CoalesceWithZero
@@ -76,14 +79,14 @@ func (d *Directive) mergeFrom(source *Directive) {
 	}
 }
 
-//AddKeyExists adds key exists TestDirective
+// AddKeyExists adds key exists TestDirective
 func (d *Directive) AddSort(key string) {
 	if key == SortTextDirective {
 		d.SortText = true
 	}
 }
 
-//AddKeyExists adds key exists TestDirective
+// AddKeyExists adds key exists TestDirective
 func (d *Directive) AddKeyExists(key string) {
 	if len(d.KeyExists) == 0 {
 		d.KeyExists = make(map[string]bool)
@@ -91,7 +94,7 @@ func (d *Directive) AddKeyExists(key string) {
 	d.KeyExists[key] = true
 }
 
-//AddKeyDoesNotExist adds key does exist TestDirective
+// AddKeyDoesNotExist adds key does exist TestDirective
 func (d *Directive) AddKeyDoesNotExist(key string) {
 	if len(d.KeyDoesNotExist) == 0 {
 		d.KeyDoesNotExist = make(map[string]bool)
@@ -99,7 +102,7 @@ func (d *Directive) AddKeyDoesNotExist(key string) {
 	d.KeyDoesNotExist[key] = true
 }
 
-//AddTimeLayout adds time layout TestDirective
+// AddTimeLayout adds time layout TestDirective
 func (d *Directive) AddTimeLayout(key, value string) {
 	if len(d.TimeLayouts) == 0 {
 		d.TimeLayouts = make(map[string]string)
@@ -107,7 +110,15 @@ func (d *Directive) AddTimeLayout(key, value string) {
 	d.TimeLayouts[key] = value
 }
 
-//AddDataType adds data type TestDirective
+// AddTimeSinceWithin adds time layout TestDirective
+func (d *Directive) AddTimeSinceWithin(key, value string) {
+	if len(d.TimeSinceWithin) == 0 {
+		d.TimeSinceWithin = make(map[string]string)
+	}
+	d.TimeSinceWithin[key] = value
+}
+
+// AddDataType adds data type TestDirective
 func (d *Directive) AddDataType(key, value string) {
 	if len(d.DataType) == 0 {
 		d.DataType = make(map[string]string)
@@ -115,7 +126,7 @@ func (d *Directive) AddDataType(key, value string) {
 	d.DataType[key] = value
 }
 
-//ExtractDataTypes extracts data from from supplied map
+// ExtractDataTypes extracts data from from supplied map
 func (d *Directive) ExtractDataTypes(aMap map[string]interface{}) {
 	for k, v := range aMap {
 		if toolbox.IsInt(v) {
@@ -153,7 +164,7 @@ func (d *Directive) ApplyKeyCaseInsensitive() {
 	d.DataType = d.asCaseInsensitveMap(d.DataType)
 }
 
-//Add adds by to supplied target
+// Add adds by to supplied target
 func (d *Directive) Add(target map[string]interface{}) {
 	if len(d.SwitchBy) > 0 {
 		target[SwitchByDirective] = d.SwitchBy
@@ -162,7 +173,7 @@ func (d *Directive) Add(target map[string]interface{}) {
 		target[IndexByDirective] = d.IndexBy
 	}
 
-	if d.NumericPrecisionPoint  != nil  && *d.NumericPrecisionPoint  > 0 {
+	if d.NumericPrecisionPoint != nil && *d.NumericPrecisionPoint > 0 {
 		target[NumericPrecisionPointDirective] = *d.NumericPrecisionPoint
 	}
 
@@ -180,6 +191,11 @@ func (d *Directive) Add(target map[string]interface{}) {
 			target[TimeLayoutDirective+k] = v
 		}
 	}
+	if len(d.TimeSinceWithin) > 0 {
+		for k, v := range d.TimeSinceWithin {
+			target[TimeSinceWithinDirective+k] = v
+		}
+	}
 	if d.TimeLayout != "" {
 		target[TimeLayoutDirective] = d.TimeLayout
 	}
@@ -192,7 +208,7 @@ func (d *Directive) addAssertPath(subpath string, expected interface{}) {
 	})
 }
 
-//ExtractDirective extract TestDirective from supplied map
+// ExtractDirective extract TestDirective from supplied map
 func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 	var keyCount = len(aMap)
 	var directiveCount = 0
@@ -238,7 +254,7 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 		}
 
 		if k == NumericPrecisionPointDirective {
-			val :=  toolbox.AsInt(v)
+			val := toolbox.AsInt(v)
 			d.NumericPrecisionPoint = &val
 			continue
 		}
@@ -315,6 +331,12 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 				continue
 			}
 
+			if strings.HasPrefix(k, TimeSinceWithinDirective) {
+				var key = strings.Replace(k, TimeSinceWithinDirective, "", 1)
+				d.AddTimeSinceWithin(key, text)
+				continue
+			}
+
 			if strings.HasPrefix(k, TimeLayoutDirective) {
 				var key = strings.Replace(k, TimeLayoutDirective, "", 1)
 				if key == "" {
@@ -333,7 +355,7 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 	return keyCount > 0 && keyCount == directiveCount
 }
 
-//Apply applies TestDirective to supplied map
+// Apply applies TestDirective to supplied map
 func (d *Directive) Apply(aMap map[string]interface{}) error {
 	if err := d.applyTimeFormat(aMap); err != nil {
 		return err
@@ -350,7 +372,7 @@ func (d *Directive) Apply(aMap map[string]interface{}) error {
 	return nil
 }
 
-//DefaultTimeLayout returns default time layout
+// DefaultTimeLayout returns default time layout
 func (d *Directive) DefaultTimeLayout() string {
 	if d.TimeLayout == "" {
 		d.TimeLayout = toolbox.DefaultDateLayout
@@ -425,18 +447,18 @@ func (d *Directive) castData(aMap map[string]interface{}) error {
 	return nil
 }
 
-//IsDirectiveKey returns true if key is TestDirective
+// IsDirectiveKey returns true if key is TestDirective
 func (d *Directive) IsDirectiveKey(key string) bool {
 	return strings.HasPrefix(key, "@") && strings.Count(key, "@") > 1
 }
 
-//IsDirectiveKey returns true if value is TestDirective
+// IsDirectiveKey returns true if value is TestDirective
 func (d *Directive) IsDirectiveValue(value string) bool {
 	return value == KeyExistsDirective ||
 		value == KeyDoesNotExistsDirective
 }
 
-//NewDirective creates a new TestDirective for supplied path
+// NewDirective creates a new TestDirective for supplied path
 func NewDirective(path DataPath) *Directive {
 	dataPath, ok := path.(*dataPath)
 
@@ -451,7 +473,6 @@ func NewDirective(path DataPath) *Directive {
 		KeyCaseSensitive: true,
 		CaseSensitive:    true,
 		AssertPaths:      make([]*AssertPath, 0),
-
 	}
 	if dataPath != nil {
 		dataPath.directive = result
@@ -494,7 +515,7 @@ func NewDirective(path DataPath) *Directive {
 	return result
 }
 
-//TestDirective represents TestDirective record
+// TestDirective represents TestDirective record
 type TestDirective map[string]interface{}
 
 func (r TestDirective) IndexBy(key string) TestDirective {

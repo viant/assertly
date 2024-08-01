@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -35,9 +36,10 @@ const (
 	PredicateViolation            = "should pass predicate"
 	ValueWasNil                   = "should have not nil"
 	SharedSwitchCaseKey           = "shared"
+	TimeSinceWithinViolation      = "should elapsed be within"
 )
 
-//Assert validates expected against actual data structure for supplied path
+// Assert validates expected against actual data structure for supplied path
 func Assert(expected, actual interface{}, path DataPath) (*Validation, error) {
 	context := NewDefaultContext()
 	return AssertWithContext(expected, actual, path, context)
@@ -51,7 +53,7 @@ func handleFailure(t *testing.T, args ...interface{}) {
 	t.Fail()
 }
 
-//AssertWithContext validates expected against actual data structure for supplied path and context
+// AssertWithContext validates expected against actual data structure for supplied path and context
 func AssertWithContext(expected, actual interface{}, path DataPath, context *Context) (*Validation, error) {
 	validation := NewValidation()
 	err := assertValue(expected, actual, path, context, validation)
@@ -195,6 +197,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 	}
 
 	dateLayout := path.Match(context).DefaultTimeLayout()
+
 	if toolbox.IsTime(expected) || toolbox.IsTime(actual) {
 		expectedTime, _ := toolbox.ToTime(expected, dateLayout)
 		return assertTime(expectedTime, actual, path, context, validation)
@@ -552,6 +555,27 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		indexable = false
 	}
 
+	if len(directive.TimeSinceWithin) > 0 {
+		for k, withInExpr := range directive.TimeSinceWithin {
+			duration, unit, _ := parseWithinExpr(withInExpr)
+
+			if actualValue, ok := actual[k]; ok {
+				dateLayout := path.Match(context).DefaultTimeLayout()
+				actualTime, err := toolbox.ToTime(actualValue, dateLayout)
+				if err != nil {
+					return err
+				}
+				diff := time.Now().Sub(*actualTime)
+				if diff > unit*time.Duration(duration) {
+					validation.AddFailure(NewFailure(path.Source(), path.Path(), TimeSinceWithinViolation, withInExpr, diff))
+				} else {
+					validation.PassedCount++
+				}
+
+			}
+		}
+	}
+
 	if len(directive.Lengths) > 0 {
 		for key, expectedLength := range directive.Lengths {
 			aMap := data.Map(actual)
@@ -632,6 +656,39 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		}
 	}
 	return nil
+}
+
+func parseWithinExpr(expr string) (int, time.Duration, *time.Location) {
+
+	var duration int
+	var unit time.Duration
+	var tz *time.Location
+	lcExpr := strings.ToLower(expr)
+	switch {
+	case strings.Contains(lcExpr, "min"):
+		if index := strings.Index(lcExpr, "min"); index != -1 {
+			duration, _ = strconv.Atoi(strings.TrimSpace(lcExpr[:index]))
+			unit = time.Minute
+		}
+	case strings.Contains(lcExpr, "sec"):
+		if index := strings.Index(lcExpr, "sec"); index != -1 {
+			duration, _ = strconv.Atoi(strings.TrimSpace(lcExpr[:index]))
+			unit = time.Second
+		}
+	case strings.Contains(lcExpr, "hour"):
+		if index := strings.Index(lcExpr, "hour"); index != -1 {
+			duration, _ = strconv.Atoi(strings.TrimSpace(lcExpr[:index]))
+			unit = time.Hour
+		}
+	}
+
+	if strings.Contains(expr, "UTC") {
+		tz = time.UTC
+	}
+	if tz == nil {
+		tz = time.Local
+	}
+	return duration, unit, tz
 }
 
 func getKeys(mapList ...map[string]interface{}) map[string]bool {
@@ -746,6 +803,12 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 
 			//add directive to expected
 			for i := 0; i < len(expected); i++ {
+				if expected[i] == nil {
+					if actual[i] == nil {
+						expected[i] = map[string]interface{}{}
+						actual[i] = map[string]interface{}{}
+					}
+				}
 				var expectedMap = toolbox.AsMap(expected[i])
 				directive.Add(expectedMap)
 				directive.Apply(expectedMap)
