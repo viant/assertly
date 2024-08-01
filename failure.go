@@ -7,7 +7,7 @@ import (
 	"unicode"
 )
 
-//Failure represents a validation failre
+// Failure represents a validation failre
 type Failure struct {
 	Source   string
 	Path     string
@@ -67,7 +67,7 @@ func removeDirectives(aMap map[string]interface{}) map[string]interface{} {
 	return result
 }
 
-//NewFailure creates a new failure
+// NewFailure creates a new failure
 func NewFailure(source, path string, reason string, expected, actual interface{}, args ...interface{}) *Failure {
 
 	if expected != nil && toolbox.IsMap(expected) {
@@ -129,6 +129,9 @@ func FormatMessage(failure *Failure) string {
 		return fmt.Sprintf("actual '%v' should not not contain: '%v'", failure.Actual, failure.Expected)
 	case PredicateViolation:
 		return fmt.Sprintf("actual '%v' should pass predicate: '%v'", failure.Actual, failure.Expected)
+	case ElapsedRangeDirective:
+		return fmt.Sprintf("actual '%v' should be within: '%v'", failure.Actual, failure.Expected)
+
 	}
 	return failure.Reason
 }
