@@ -566,13 +566,15 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 				}
 				diff := time.Now().Sub(*actualTime)
 				if diff < from || diff > to {
-					validation.AddFailure(NewFailure(path.Source(), path.Path(), ElapseRangeViolation, fmt.Sprintf("%s..%s", from.Seconds(), to.Seconds()), diff.Seconds()))
+					validation.AddFailure(NewFailure(path.Source(), path.Path(), ElapseRangeViolation, fmt.Sprintf("%v..%v", int(from.Seconds()), int(to.Seconds())), int(diff.Seconds())))
 				} else {
 					validation.PassedCount++
 				}
 
 			}
 		}
+		//reset directive
+		directive.ElaspedRange = make(map[string]string)
 	}
 
 	if len(directive.Lengths) > 0 {
