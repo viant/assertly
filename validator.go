@@ -763,7 +763,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 				return true
 			})
 			var actualSlice = []string{}
-			toolbox.ProcessSlice(expected, func(item interface{}) bool {
+			toolbox.ProcessSlice(actual, func(item interface{}) bool {
 				actualSlice = append(actualSlice, toolbox.AsString(item))
 				return true
 			})
