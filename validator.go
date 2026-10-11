@@ -97,6 +97,7 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 				return nil
 			}
 			validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
+			return nil
 		}
 
 		if actualTime == nil {
@@ -231,7 +232,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		expectedTime, err := toolbox.ToTime(expectedText, directive.DefaultTimeLayout())
 		actualTime, e := toolbox.ToTime(actual, directive.DefaultTimeLayout())
 		if e == nil || err == nil {
-			if expectedTime == nil {
+			if expectedTime == nil && actualTime != nil {
 				if strings.HasPrefix(actualTime.String(), expectedText) {
 					validation.PassedCount++
 					return nil
