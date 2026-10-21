@@ -97,6 +97,7 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 				return nil
 			}
 			validation.AddFailure(NewFailure(path.Source(), path.Path(), EqualViolation, expected, actual))
+			return nil
 		}
 
 		if actualTime == nil {
@@ -131,7 +132,23 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 
 	directive := NewDirective(path)
 	if expected == nil {
-		if actual == nil {
+		// SQL scanners retain nil scalar pointers inside interface values.
+		// Preserve the existing struct/map/slice coalescing directives and keep
+		// nonnil pointers to zero distinct from SQL NULL.
+		isNil := actual == nil
+		if !isNil {
+			value := reflect.ValueOf(actual)
+			if value.Kind() == reflect.Ptr && value.IsNil() {
+				switch value.Type().Elem().Kind() {
+				case reflect.Bool, reflect.String,
+					reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+					reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
+					reflect.Float32, reflect.Float64:
+					isNil = true
+				}
+			}
+		}
+		if isNil {
 			validation.PassedCount++
 			return nil
 		}
