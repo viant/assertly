@@ -248,7 +248,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		expectedTime, err := toolbox.ToTime(expectedText, directive.DefaultTimeLayout())
 		actualTime, e := toolbox.ToTime(actual, directive.DefaultTimeLayout())
 		if e == nil || err == nil {
-			if expectedTime == nil {
+			if expectedTime == nil && actualTime != nil {
 				if strings.HasPrefix(actualTime.String(), expectedText) {
 					validation.PassedCount++
 					return nil
@@ -780,7 +780,7 @@ func assertSlice(expected []interface{}, actualValue interface{}, path DataPath,
 				return true
 			})
 			var actualSlice = []string{}
-			toolbox.ProcessSlice(expected, func(item interface{}) bool {
+			toolbox.ProcessSlice(actual, func(item interface{}) bool {
 				actualSlice = append(actualSlice, toolbox.AsString(item))
 				return true
 			})
