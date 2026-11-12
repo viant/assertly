@@ -130,6 +130,12 @@ func assertTime(expected *time.Time, actual interface{}, path DataPath, context 
 
 func assertValue(expected, actual interface{}, path DataPath, context *Context, validation *Validation) (err error) {
 
+	switch expected.(type) {
+	case *float32, *float64:
+		if reflect.ValueOf(expected).IsNil() {
+			expected = nil
+		}
+	}
 	directive := NewDirective(path)
 	if expected == nil {
 		// SQL scanners retain nil scalar pointers inside interface values.
@@ -163,7 +169,7 @@ func assertValue(expected, actual interface{}, path DataPath, context *Context, 
 		assertInt(expected, actual, path, context, validation)
 		return
 	case float32, float64:
-		actual = toolbox.AsFloat(actual)
+		// Preserve null and conversion errors for the coalescing policy below.
 		assertFloat(expected, actual, path, context, validation)
 		return
 	case *float32, *float64:
@@ -437,6 +443,14 @@ func assertInt(expected, actual interface{}, path DataPath, context *Context, va
 
 func assertFloat(expected, actual interface{}, path DataPath, context *Context, validation *Validation) {
 	directive := path.Directive()
+	// ToFloat treats nil float pointers as zero without an error. Keep SQL
+	// NULL distinguishable until the explicit coalescing directive is checked.
+	switch actual.(type) {
+	case *float32, *float64:
+		if reflect.ValueOf(actual).IsNil() {
+			actual = nil
+		}
+	}
 	expectedFloat, expectedErr := toolbox.ToFloat(expected)
 	if toolbox.IsNilPointerError(expectedErr) && directive.CoalesceWithZero && directive.StrictMapCheck {
 		expectedErr = nil
@@ -626,6 +640,18 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 		checkedKeys = getKeys(expected, actual)
 	} else {
 		checkedKeys = getKeys(expected)
+	}
+	// Key-form existence directives name targets that need not have a value
+	// entry in the expected map. Include them even in non-strict comparisons.
+	for key, enabled := range directive.KeyExists {
+		if enabled {
+			checkedKeys[key] = true
+		}
+	}
+	for key, enabled := range directive.KeyDoesNotExist {
+		if enabled {
+			checkedKeys[key] = true
+		}
 	}
 
 	for expectedKey := range checkedKeys {
