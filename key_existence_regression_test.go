@@ -7,6 +7,17 @@ import (
 	"github.com/viant/assertly"
 )
 
+func TestBareKeyExistenceDirectivesUseTheirValues(t *testing.T) {
+	present := map[string]interface{}{"entity": nil, "status": "ok"}
+	absent := map[string]interface{}{"status": "ok"}
+	assertExistenceCounts(t, `{"@exists@":"entity"}`, present, 1, 0)
+	assertExistenceCounts(t, `{"@exists@":"entity"}`, absent, 0, 1)
+	assertExistenceCounts(t, `{"@!exists@":"entity"}`, present, 0, 1)
+	assertExistenceCounts(t, `{"@!exists@":"entity"}`, absent, 1, 0)
+	assertExistenceCounts(t, `{"@exists@":["entity","status"]}`, absent, 1, 1)
+	assertExistenceCounts(t, `{"@!exists@":["entity","status"]}`, absent, 1, 1)
+}
+
 func TestKeyExistenceDirectiveWithoutPlaceholder(t *testing.T) {
 	forms := []struct {
 		key    string

@@ -289,6 +289,20 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 			continue
 		}
 
+		if k == KeyExistsDirective || k == KeyDoesNotExistsDirective {
+			// The bare form carries the key names in its value. Only the
+			// suffixed form interprets the value as a boolean.
+			if keys := bareExistenceKeys(v); len(keys) != 0 {
+				for _, key := range keys {
+					if k == KeyExistsDirective {
+						d.AddKeyExists(key)
+					} else {
+						d.AddKeyDoesNotExist(key)
+					}
+				}
+				continue
+			}
+		}
 		if strings.HasPrefix(k, LengthDirective) {
 			var key = strings.Replace(k, LengthDirective, "", 1)
 			d.Lengths[key] = toolbox.AsInt(v)
@@ -353,6 +367,25 @@ func (d *Directive) ExtractDirectives(aMap map[string]interface{}) bool {
 		}
 	}
 	return keyCount > 0 && keyCount == directiveCount
+}
+
+func bareExistenceKeys(value interface{}) []string {
+	if key, ok := value.(string); ok && key != "" {
+		return []string{key}
+	}
+	if !toolbox.IsSlice(value) {
+		return nil
+	}
+	items := toolbox.AsSlice(value)
+	keys := make([]string, 0, len(items))
+	for _, item := range items {
+		key, ok := item.(string)
+		if !ok || key == "" {
+			return nil
+		}
+		keys = append(keys, key)
+	}
+	return keys
 }
 
 // Apply applies TestDirective to supplied map
