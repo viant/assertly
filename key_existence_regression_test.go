@@ -105,3 +105,32 @@ func assertExistenceCounts(t *testing.T, expected, actual interface{}, passed, f
 		t.Fatalf("counts passed=%d failed=%d; want passed=%d failed=%d: %s", validation.PassedCount, validation.FailedCount, passed, failed, validation.Report())
 	}
 }
+
+func TestKeyExistenceDirectiveDoesNotExpandIntoChild(t *testing.T) {
+	expected := map[string]interface{}{"@exists@landing_page_url": true, "size": map[string]interface{}{"width": 300}}
+	actual := map[string]interface{}{"landing_page_url": nil, "size": map[string]interface{}{"width": 300}}
+	assertExistenceCounts(t, expected, actual, 2, 0)
+}
+
+func TestKeyExistenceDirectiveNestedLocalTargets(t *testing.T) {
+	for _, parentPresent := range []bool{false, true} {
+		for _, childPresent := range []bool{false, true} {
+			expected := map[string]interface{}{"@exists@parent": true, "child": map[string]interface{}{"@exists@own": true, "width": 300}}
+			child := map[string]interface{}{"width": 300}
+			actual := map[string]interface{}{"child": child}
+			passed, failed := 1, 2
+			if parentPresent {
+				actual["parent"] = nil
+				passed++
+				failed--
+			}
+			if childPresent {
+				child["own"] = nil
+				passed++
+				failed--
+			}
+			assertExistenceCounts(t, expected, actual, passed, failed)
+		}
+	}
+	assertExistenceCounts(t, map[string]interface{}{"@!exists@parent": true, "child": map[string]interface{}{"width": 300}}, map[string]interface{}{"child": map[string]interface{}{"width": 300}}, 2, 0)
+}

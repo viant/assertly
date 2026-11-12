@@ -641,14 +641,17 @@ func assertMap(expected map[string]interface{}, actualValue interface{}, path Da
 	} else {
 		checkedKeys = getKeys(expected)
 	}
-	// Key-form existence directives name targets that need not have a value
-	// entry in the expected map. Include them even in non-strict comparisons.
-	for key, enabled := range directive.KeyExists {
+	// Expand only directives authored on this map. Inherited directives retain
+	// their existing behavior for declared keys, but must not introduce absent
+	// parent targets into every nested object.
+	localTargets := NewDirective(NewDataPath(""))
+	localTargets.ExtractDirectives(expected)
+	for key, enabled := range localTargets.KeyExists {
 		if enabled {
 			checkedKeys[key] = true
 		}
 	}
-	for key, enabled := range directive.KeyDoesNotExist {
+	for key, enabled := range localTargets.KeyDoesNotExist {
 		if enabled {
 			checkedKeys[key] = true
 		}
